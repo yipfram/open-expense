@@ -14,8 +14,9 @@ The system collects and organizes receipts, and is not an accounting platform.
 5. Data layer: PostgreSQL.
 6. File storage: S3-compatible object storage.
 7. Mail: SMTP for transactional emails.
-8. Deployment: Docker Compose only for v1.
-9. Email templates in v1: plain text; branded HTML can be introduced later.
+8. Deployment target for v1: self-hosted environment (Docker Compose supported by IT).
+9. Milestone 0 bootstrap mode: local-first development using pnpm (no mandatory Docker setup).
+10. Email templates in v1: plain text; branded HTML can be introduced later.
 
 ## Domain and Workflow Decisions
 1. One deployment = one organization.

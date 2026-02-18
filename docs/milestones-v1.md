@@ -1,13 +1,14 @@
 # Milestones (V1)
 
 ## Milestone 0 - Project Bootstrap
-- Initialize Node.js + TypeScript app structure.
+- Initialize Next.js (App Router) + TypeScript app structure.
+- Configure pnpm package management baseline.
 - Add lint/format/test baseline.
-- Add Docker Compose with app, postgres, mail test service, and local S3-compatible service.
-- Provide `.env.example`.
+- Provide `.env.example` with placeholders for future integrations.
+- Document local-first startup flow.
 
 Exit criteria:
-- App runs locally with one command.
+- App runs locally with one command (`pnpm dev`) after install.
 
 ## Milestone 1 - Auth and Roles
 - Integrate Better Auth with email/password.
