@@ -64,8 +64,20 @@ export const users = pgTable("users", {
 export const invites = pgTable("invites", {
   id: uuid("id").defaultRandom().primaryKey(),
   token: text("token").notNull().unique(),
-  createdByUserId: uuid("created_by_user_id"),
+  email: varchar("email", { length: 255 }),
+  createdByUserId: text("created_by_user_id"),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   usedAt: timestamp("used_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const roleAssignments = pgTable("role_assignment", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  role: text("role").notNull(),
+  scopeDepartmentId: uuid("scope_department_id"),
+  scopeProjectId: uuid("scope_project_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });

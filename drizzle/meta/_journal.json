@@ -15,6 +15,20 @@
       "when": 1771445221186,
       "tag": "0001_slow_lilandra",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1771447103718,
+      "tag": "0002_violet_selene",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1771455506249,
+      "tag": "0003_fancy_layla_miller",
+      "breakpoints": true
     }
   ]
 }

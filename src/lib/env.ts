@@ -8,16 +8,6 @@ export function getSignupMode(): SignupMode {
   return "invite_only";
 }
 
-export function getAdminEmails(): Set<string> {
-  const value = process.env.AUTH_ADMIN_EMAILS ?? "";
-  return new Set(
-    value
-      .split(",")
-      .map((email) => email.trim().toLowerCase())
-      .filter(Boolean),
-  );
-}
-
 export function getInviteCodes(): Set<string> {
   const value = process.env.INVITE_CODES ?? "";
   return new Set(

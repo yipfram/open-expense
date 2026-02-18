@@ -1,25 +1,62 @@
 "use client";
 
-import { useActionState } from "react";
-
-import { signUpAction } from "@/app/(auth)/sign-up/actions";
+import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 
 type SignUpState = {
   error?: string;
   requestId?: string;
 };
 
-const initialState: SignUpState = {};
-
 type SignUpFormProps = {
   requireInvite: boolean;
 };
 
 export function SignUpForm({ requireInvite }: SignUpFormProps) {
-  const [state, action, isPending] = useActionState<SignUpState, FormData>(signUpAction, initialState);
+  const router = useRouter();
+  const [state, setState] = useState<SignUpState>({});
+  const [isPending, setIsPending] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsPending(true);
+    setState({});
+
+    const formData = new FormData(event.currentTarget);
+    const name = String(formData.get("name") ?? "").trim();
+    const email = String(formData.get("email") ?? "").trim();
+    const password = String(formData.get("password") ?? "");
+    const inviteCode = String(formData.get("inviteCode") ?? "").trim();
+
+    try {
+      const response = await fetch("/api/auth/sign-up", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ name, email, password, inviteCode }),
+      });
+
+      if (!response.ok) {
+        const data = (await response.json().catch(() => ({}))) as SignUpState;
+        setState({
+          error: data.error ?? "Unable to create account right now.",
+          requestId: data.requestId,
+        });
+        return;
+      }
+
+      router.push("/");
+      router.refresh();
+    } catch {
+      setState({ error: "Network error. Please retry." });
+    } finally {
+      setIsPending(false);
+    }
+  }
 
   return (
-    <form action={action} className="mt-4 grid gap-3">
+    <form onSubmit={handleSubmit} className="mt-4 grid gap-3">
       <label className="text-sm font-medium text-slate-700" htmlFor="name">
         Name
       </label>

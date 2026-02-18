@@ -1,21 +1,56 @@
 "use client";
 
-import { useActionState } from "react";
-
-import { signInAction } from "@/app/(auth)/sign-in/actions";
+import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 
 type SignInState = {
   error?: string;
   requestId?: string;
 };
 
-const initialState: SignInState = {};
-
 export function SignInForm() {
-  const [state, action, isPending] = useActionState<SignInState, FormData>(signInAction, initialState);
+  const router = useRouter();
+  const [state, setState] = useState<SignInState>({});
+  const [isPending, setIsPending] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsPending(true);
+    setState({});
+
+    const formData = new FormData(event.currentTarget);
+    const email = String(formData.get("email") ?? "").trim();
+    const password = String(formData.get("password") ?? "");
+
+    try {
+      const response = await fetch("/api/auth/sign-in", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        const data = (await response.json().catch(() => ({}))) as SignInState;
+        setState({
+          error: data.error ?? "Unable to sign in right now.",
+          requestId: data.requestId,
+        });
+        return;
+      }
+
+      router.push("/");
+      router.refresh();
+    } catch {
+      setState({ error: "Network error. Please retry." });
+    } finally {
+      setIsPending(false);
+    }
+  }
 
   return (
-    <form action={action} className="mt-4 grid gap-3">
+    <form onSubmit={handleSubmit} className="mt-4 grid gap-3">
       <label className="text-sm font-medium text-slate-700" htmlFor="email">
         Email
       </label>

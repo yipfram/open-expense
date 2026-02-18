@@ -3,18 +3,18 @@ import { describe, expect, it } from "vitest";
 import { canSignUp, consumeInviteCode } from "../src/lib/invites";
 
 describe("invites", () => {
-  it("allows open mode", () => {
+  it("allows open mode", async () => {
     process.env.AUTH_SIGNUP_MODE = "open";
-    expect(canSignUp()).toBe(true);
+    await expect(canSignUp()).resolves.toBe(true);
   });
 
-  it("validates and consumes invite code in invite-only mode", () => {
+  it("validates and consumes invite code in invite-only mode", async () => {
     process.env.AUTH_SIGNUP_MODE = "invite_only";
     process.env.INVITE_CODES = "code-a,code-b";
 
-    expect(canSignUp("code-a")).toBe(true);
-    expect(consumeInviteCode("code-a")).toBe(true);
-    expect(canSignUp("code-a")).toBe(false);
-    expect(canSignUp("code-b")).toBe(true);
+    await expect(canSignUp("code-a")).resolves.toBe(true);
+    await expect(consumeInviteCode("code-a")).resolves.toBe(true);
+    await expect(canSignUp("code-a")).resolves.toBe(false);
+    await expect(canSignUp("code-b")).resolves.toBe(true);
   });
 });

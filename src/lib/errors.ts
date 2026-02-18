@@ -6,6 +6,21 @@ export type UiError = {
   requestId: string;
 };
 
+export function uiErrorToStatusCode(error: UiError): number {
+  switch (error.code) {
+    case "validation":
+      return 400;
+    case "authentication":
+      return 401;
+    case "conflict":
+      return 409;
+    case "database":
+      return 503;
+    default:
+      return 500;
+  }
+}
+
 type UnknownRecord = Record<string, unknown>;
 
 export function toUiError(error: unknown, fallbackMessage: string): UiError {

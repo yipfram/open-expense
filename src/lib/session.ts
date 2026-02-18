@@ -17,7 +17,7 @@ export async function requireSession() {
 
 export async function requireRole(allowedRoles: AppRole[]) {
   const session = await requireSession();
-  const roles = getUserRoles(session.user);
+  const roles = await getUserRoles(session.user);
   const isAllowed = roles.some((role) => allowedRoles.includes(role));
 
   if (!isAllowed) {

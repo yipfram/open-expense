@@ -1,5 +1,7 @@
 import { auth } from "@/src/lib/auth";
-import { getAdminEmails } from "@/src/lib/env";
+import { db } from "@/src/db/client";
+import { roleAssignments, user } from "@/src/db/schema";
+import { and, eq } from "drizzle-orm";
 
 async function main() {
   const email = process.env.SEED_ADMIN_EMAIL?.trim();
@@ -26,10 +28,34 @@ async function main() {
     }
   }
 
-  const adminEmails = getAdminEmails();
-  if (!adminEmails.has(email.toLowerCase())) {
-    console.log("Warning: seeded user is not listed in AUTH_ADMIN_EMAILS.");
+  const users = await db.select({ id: user.id }).from(user).where(eq(user.email, email.toLowerCase())).limit(1);
+  const userId = users[0]?.id;
+
+  if (!userId) {
+    throw new Error(`Unable to find user id for seeded email ${email}.`);
   }
+
+  await ensureRole(userId, "admin");
+  await ensureRole(userId, "member");
+  await ensureRole(userId, "finance");
+  console.log(`Ensured role assignments for user ${email}.`);
 }
 
 void main();
+
+async function ensureRole(userId: string, role: string) {
+  const existing = await db
+    .select({ id: roleAssignments.id })
+    .from(roleAssignments)
+    .where(and(eq(roleAssignments.userId, userId), eq(roleAssignments.role, role)))
+    .limit(1);
+
+  if (existing.length > 0) {
+    return;
+  }
+
+  await db.insert(roleAssignments).values({
+    userId,
+    role,
+  });
+}

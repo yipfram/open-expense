@@ -12,8 +12,11 @@ export default async function HomePage() {
       <h1 className="text-3xl font-semibold tracking-tight">Open-expense V1</h1>
       {session ? (
         <>
+          {/*
+            Role resolution is async because role assignments are persisted in DB.
+          */}
           <p className="text-slate-700">Signed in as {session.user.email}</p>
-          <p className="text-slate-700">Roles: {getUserRoles(session.user).join(", ")}</p>
+          <p className="text-slate-700">Roles: {(await getUserRoles(session.user)).join(", ")}</p>
           <nav>
             <ul className="flex flex-wrap gap-3">
               <li>

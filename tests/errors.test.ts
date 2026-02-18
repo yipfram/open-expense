@@ -14,6 +14,6 @@ describe("toUiError", () => {
     const error = { code: "23505", message: "duplicate key value violates unique constraint" };
     const mapped = toUiError(error, "fallback");
     expect(mapped.code).toBe("conflict");
-    expect(mapped.message).toBe("This account already exists.");
+    expect(mapped.message).toBe("This email is already registered. Try signing in instead.");
   });
 });
