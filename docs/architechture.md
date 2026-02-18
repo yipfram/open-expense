@@ -44,6 +44,8 @@ The system collects and organizes receipts, and is not an accounting platform.
 1. Signup modes supported: invite-only and open signup.
 2. Default mode: invite-only.
 3. Invite expiration: 14 days.
+4. Milestone 1 bootstrap implementation uses environment-driven signup mode (`AUTH_SIGNUP_MODE`) with `invite_only` as default.
+5. Invitation validation in Milestone 1 bootstrap is token-based via environment variables, pending persistent invite storage in later milestones.
 
 ## V1 Non-Goals
 1. Accounting features.

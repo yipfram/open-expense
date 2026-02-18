@@ -15,6 +15,7 @@ Exit criteria:
 - Implement invite flow and signup mode setting (default invite-only).
 - Seed initial admin account.
 - Implement role checks for member/manager/finance/admin.
+- Bootstrap note: initial invite validation can be environment-backed before persistence is introduced.
 
 Exit criteria:
 - Role-based route protection works.

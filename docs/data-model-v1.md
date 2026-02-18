@@ -91,12 +91,20 @@ Notes:
 - `signup_mode` (`invite_only`, `open`, `both_default_invite`)
 - `updated_at`
 
+### Invite (Milestone 1 bootstrap: env-backed tokens)
+- `token`
+- `expires_at`
+- `email` (nullable pre-targeting)
+- `created_by_user_id` (nullable in bootstrap)
+- `used_at` (nullable)
+
 ## Suggested Indexes
 - `expense(status, submitted_at desc)` for finance inbox.
 - `expense(member_id, created_at desc)` for member history.
 - `expense(project_id, created_at desc)` for scoped manager read.
 - `audit_event(entity_type, entity_id, created_at desc)`.
 - `expense_attachment(expense_id)` unique.
+- `invite(token)` unique.
 
 ## Integrity Rules
 1. One attachment per expense in v1.
@@ -107,3 +115,4 @@ Notes:
 6. Expense deletion is soft delete (`deleted_at` set, row retained for audit/version traceability).
 7. Attachment object is stored in S3-compatible storage as the original upload.
 8. `category` max length is 50 chars.
+9. Invite tokens can be used only once and only before expiration.
