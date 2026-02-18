@@ -8,6 +8,7 @@
 - Data model: `docs/data-model-v1.md`
 - Milestones: `docs/milestones-v1.md`
 - Email templates: `docs/email-templates-v1.md`
+- Operational handoff snapshot: `docs/current-work-handoff.md`
 
 ## Status
 - Open product/architecture decisions: none for current v1 scope.

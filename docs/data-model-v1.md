@@ -95,8 +95,18 @@ Notes:
 - `token`
 - `expires_at`
 - `email` (nullable pre-targeting)
-- `created_by_user_id` (nullable in bootstrap)
+- `created_by_user_id` (nullable)
 - `used_at` (nullable)
+
+### Better Auth Infrastructure Tables (Milestone 1 implementation)
+- `user`
+- `session`
+- `account`
+- `verification`
+
+Notes:
+- These tables are required by Better Auth with Drizzle adapter.
+- Domain-level user/role model remains defined by `User` + `RoleAssignment` for v1 business behavior.
 
 ## Suggested Indexes
 - `expense(status, submitted_at desc)` for finance inbox.

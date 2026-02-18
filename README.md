@@ -20,7 +20,6 @@ Milestone 1 bootstrap for V1 using Next.js (App Router), TypeScript, pnpm, Bette
    - `BETTER_AUTH_SECRET`
    - `AUTH_SIGNUP_MODE`
    - `INVITE_CODES` (when `AUTH_SIGNUP_MODE=invite_only`)
-   - `AUTH_ADMIN_EMAILS`
 4. Optional admin seed:
    ```bash
    SEED_ADMIN_EMAIL=admin@example.com SEED_ADMIN_PASSWORD=ChangeMe123! pnpm seed:admin
@@ -63,6 +62,29 @@ The default `docker-compose.yml` values match `.env.example`:
 - Generate SQL migration from `src/db/schema.ts`: `pnpm db:generate`
 - Apply pending migrations: `pnpm db:migrate`
 - Open Drizzle Studio: `pnpm db:studio`
+- Validate Better Auth tables are present: `pnpm db:check:auth`
+
+## Auth API Error Status
+Auth submit flows use explicit API routes and return non-200 status codes on failure:
+- `POST /api/auth/sign-in`
+- `POST /api/auth/sign-up`
+- `GET /api/admin/invites`
+- `POST /api/admin/invites`
+
+Status mapping:
+- `400` validation failure
+- `401` authentication failure
+- `403` invite policy rejection
+- `409` conflict (duplicate/consumed resource)
+- `503` temporary backend/database outage
+- `500` unexpected server failure
+
+## Invite Management
+- Primary mode: DB-backed invites via `invites` table.
+- Admin endpoints:
+  - `POST /api/admin/invites` to create invite tokens
+  - `GET /api/admin/invites` to list invites
+- Temporary bootstrap fallback remains available with `INVITE_CODES` env var.
 
 ## Environment
 Copy `.env.example` to `.env` and fill values.
@@ -71,3 +93,6 @@ Auth mode defaults to invite-only (`AUTH_SIGNUP_MODE=invite_only`).
 
 ## Milestone Mapping
 This repository is currently aligned to Milestone 1 foundations defined in `docs/milestones-v1.md`.
+
+## Cross-Session Context
+- Current implementation handoff: `docs/current-work-handoff.md`

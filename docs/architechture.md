@@ -11,7 +11,8 @@ The system collects and organizes receipts, and is not an accounting platform.
 4. Authorization model:
    - Main user types: member, finance, admin.
    - Manager is an additional role on top of member (scoped read/review).
-5. Data layer: PostgreSQL.
+   - Runtime access checks use persisted role assignments in database.
+5. Data layer: PostgreSQL + Drizzle ORM.
 6. File storage: S3-compatible object storage.
 7. Mail: SMTP for transactional emails.
 8. Deployment target for v1: self-hosted environment (Docker Compose supported by IT).
@@ -46,6 +47,20 @@ The system collects and organizes receipts, and is not an accounting platform.
 3. Invite expiration: 14 days.
 4. Milestone 1 bootstrap implementation uses environment-driven signup mode (`AUTH_SIGNUP_MODE`) with `invite_only` as default.
 5. Invitation validation in Milestone 1 bootstrap is token-based via environment variables, pending persistent invite storage in later milestones.
+
+## Role Persistence (Milestone 1)
+1. Access roles (`member`, `manager`, `finance`, `admin`) are persisted via `role_assignment` records.
+2. Environment email allowlists are not used as runtime authorization source.
+
+## API Error Semantics (Milestone 1)
+1. Auth submit endpoints return explicit HTTP status codes on failures.
+2. Status mapping:
+   - validation errors: `400`
+   - authentication failures: `401`
+   - invite policy rejection: `403`
+   - conflicts (e.g., duplicate email): `409`
+   - temporary database/service outage: `503`
+   - unknown server errors: `500`
 
 ## V1 Non-Goals
 1. Accounting features.
