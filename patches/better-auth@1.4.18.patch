@@ -1,0 +1,13 @@
+diff --git a/dist/integrations/next-js.mjs b/dist/integrations/next-js.mjs
+index 6c82a076b7c7eaaa518cdef0568b9121b08a5d77..f9d4555776b2034755bf42b9e48c8eb98b440bab 100644
+--- a/dist/integrations/next-js.mjs
++++ b/dist/integrations/next-js.mjs
+@@ -29,7 +29,7 @@ const nextCookies = () => {
+ 					const setCookies = returned?.get("set-cookie");
+ 					if (!setCookies) return;
+ 					const parsed = parseSetCookieHeader(setCookies);
+-					const { cookies } = await import("next/headers");
++					const { cookies } = await import("next/headers.js");
+ 					let cookieHelper;
+ 					try {
+ 						cookieHelper = await cookies();
