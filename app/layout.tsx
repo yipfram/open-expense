@@ -2,6 +2,7 @@ import "./globals.css";
 
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { PerformanceGuard } from "@/app/performance-guard";
 
 export const metadata: Metadata = {
   title: "Open-expense",
@@ -15,7 +16,10 @@ type RootLayoutProps = {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
-      <body className="min-h-screen">{children}</body>
+      <body className="min-h-screen">
+        <PerformanceGuard />
+        {children}
+      </body>
     </html>
   );
 }

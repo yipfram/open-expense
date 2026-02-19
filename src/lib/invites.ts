@@ -2,9 +2,7 @@ import { and, desc, eq, gt, isNull } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 
 import { invites } from "@/src/db/schema";
-import { getInviteCodes, getSignupMode } from "@/src/lib/env";
-
-const usedFallbackInviteCodes = new Set<string>();
+import { getSignupMode } from "@/src/lib/env";
 
 export async function canSignUp(inputCode?: string): Promise<boolean> {
   if (getSignupMode() === "open") {
@@ -14,10 +12,6 @@ export async function canSignUp(inputCode?: string): Promise<boolean> {
   const code = normalizeCode(inputCode);
   if (!code) {
     return false;
-  }
-
-  if (isFallbackModeEnabled()) {
-    return canUseFallbackInviteCode(code);
   }
 
   const db = await getDb();
@@ -38,14 +32,6 @@ export async function consumeInviteCode(inputCode?: string): Promise<boolean> {
   const code = normalizeCode(inputCode);
   if (!code) {
     return false;
-  }
-
-  if (isFallbackModeEnabled()) {
-    if (!canUseFallbackInviteCode(code)) {
-      return false;
-    }
-    usedFallbackInviteCodes.add(code);
-    return true;
   }
 
   const db = await getDb();
@@ -108,15 +94,6 @@ export async function listInvites(limit = 50) {
 
 function normalizeCode(inputCode?: string) {
   return (inputCode ?? "").trim();
-}
-
-function canUseFallbackInviteCode(code: string) {
-  const fallbackCodes = getInviteCodes();
-  return fallbackCodes.has(code) && !usedFallbackInviteCodes.has(code);
-}
-
-function isFallbackModeEnabled() {
-  return getInviteCodes().size > 0;
 }
 
 function generateInviteToken() {

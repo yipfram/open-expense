@@ -45,12 +45,13 @@ The system collects and organizes receipts, and is not an accounting platform.
 1. Signup modes supported: invite-only and open signup.
 2. Default mode: invite-only.
 3. Invite expiration: 14 days.
-4. Milestone 1 bootstrap implementation uses environment-driven signup mode (`AUTH_SIGNUP_MODE`) with `invite_only` as default.
-5. Invitation validation in Milestone 1 bootstrap is token-based via environment variables, pending persistent invite storage in later milestones.
+4. Milestone 1 implementation uses environment-driven signup mode (`AUTH_SIGNUP_MODE`) with `invite_only` as default.
+5. Invitation validation is backed by persisted invite records.
 
 ## Role Persistence (Milestone 1)
 1. Access roles (`member`, `manager`, `finance`, `admin`) are persisted via `role_assignment` records.
 2. Environment email allowlists are not used as runtime authorization source.
+3. Canonical identity table is Better Auth `user`; no duplicate app-level `users` identity table is used.
 
 ## API Error Semantics (Milestone 1)
 1. Auth submit endpoints return explicit HTTP status codes on failures.

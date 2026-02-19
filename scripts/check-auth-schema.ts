@@ -1,7 +1,7 @@
 import { Client } from "pg";
 import "dotenv/config";
 
-const REQUIRED_TABLES = ["user", "session", "account", "verification"];
+const REQUIRED_TABLES = ["user", "session", "account", "verification", "role_assignment", "invites"];
 
 async function main() {
   if (!process.env.DATABASE_URL) {

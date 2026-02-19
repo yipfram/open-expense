@@ -16,7 +16,7 @@ Exit criteria:
 - Seed initial admin account.
 - Implement role checks for member/manager/finance/admin.
 - Persist and enforce role assignments from database.
-- Bootstrap note: initial invite validation can be environment-backed before persistence is introduced.
+- Persist and enforce invite validation from database.
 - Implement auth schema migrations (Drizzle) for Better Auth tables.
 - Ensure auth submit APIs expose non-200 error status codes on failure paths.
 

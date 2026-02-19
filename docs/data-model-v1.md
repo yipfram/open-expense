@@ -3,18 +3,25 @@
 ## Entities
 
 ### User
-- `id` (uuid)
+- `id` (text)
 - `email` (unique)
-- `password_hash` (nullable for SSO later)
-- `display_name`
-- `department_id` (required)
-- `is_active`
+- `name`
+- `email_verified`
+- `image` (nullable)
+- `role` (nullable; app authorization comes from `RoleAssignment`)
+- `banned` (nullable)
+- `ban_reason` (nullable)
+- `ban_expires` (nullable)
 - `created_at`
 - `updated_at`
 
+Notes:
+- Canonical identity store is Better Auth `user` table.
+- Domain/business logic should reference this user identity.
+
 ### RoleAssignment
 - `id` (uuid)
-- `user_id`
+- `user_id` (text, FK to `user.id`)
 - `role` (`member`, `manager`, `finance`, `admin`)
 - `scope_department_id` (nullable)
 - `scope_project_id` (nullable)

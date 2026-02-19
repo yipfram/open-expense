@@ -30,11 +30,14 @@ Primary source-of-truth docs:
   - `/sign-in`, `/sign-up`, `/member`, `/finance`, `/admin`
 - Role persistence implemented via `role_assignment` table and DB-backed role checks.
 - Admin seed now persists admin/member/finance assignments in `role_assignment`.
-- Invite-only bootstrap flow implemented (env-backed tokens for now).
 - Invite flow upgraded to DB-backed lifecycle via Drizzle `invites` table.
 - Admin invite management API implemented:
   - `GET /api/admin/invites`
   - `POST /api/admin/invites`
+- API integration-style test coverage added for:
+  - `POST /api/auth/sign-in`
+  - `POST /api/auth/sign-up`
+  - `GET/POST /api/admin/invites`
 - Error handling hardened:
   - centralized mapper in `src/lib/errors.ts`
   - request reference IDs in UI
@@ -52,14 +55,11 @@ Primary source-of-truth docs:
 - `500`: unexpected server errors
 
 ## Known Technical Gaps
-- Temporary fallback invite mode (`INVITE_CODES`) still exists for bootstrap/local usage.
-- Domain/business `users` table and Better Auth `user` table coexist; final ownership/mapping must be clarified in milestone work.
+- No major auth/role schema ambiguity remains for Milestone 1 scope.
 
 ## Recommended Next Steps
-1. Add API integration tests for auth status-code behavior and admin invite routes.
-2. Remove env invite fallback once DB invite management is confirmed stable.
-3. Clarify/merge business `users` vs Better Auth `user` ownership.
-4. Move Milestone 1 issue to review when above items are done.
+1. Move Milestone 1 issue to review.
+2. Start Milestone 2 (member submission flow).
 
 ## Useful Commands
 ```bash

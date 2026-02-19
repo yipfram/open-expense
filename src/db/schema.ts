@@ -54,13 +54,6 @@ export const verification = pgTable("verification", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const users = pgTable("users", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  email: varchar("email", { length: 255 }).notNull().unique(),
-  displayName: varchar("display_name", { length: 120 }).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-});
-
 export const invites = pgTable("invites", {
   id: uuid("id").defaultRandom().primaryKey(),
   token: text("token").notNull().unique(),

@@ -1,20 +1,49 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { canSignUp, consumeInviteCode } from "../src/lib/invites";
+const selectLimit = vi.fn();
+const updateReturning = vi.fn();
+
+const dbMock = {
+  select: vi.fn(() => ({
+    from: vi.fn(() => ({
+      where: vi.fn(() => ({
+        limit: selectLimit,
+      })),
+    })),
+  })),
+  update: vi.fn(() => ({
+    set: vi.fn(() => ({
+      where: vi.fn(() => ({
+        returning: updateReturning,
+      })),
+    })),
+  })),
+};
+
+vi.mock("@/src/db/client", () => ({
+  db: dbMock,
+}));
 
 describe("invites", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("allows open mode", async () => {
     process.env.AUTH_SIGNUP_MODE = "open";
+    const { canSignUp } = await import("../src/lib/invites");
     await expect(canSignUp()).resolves.toBe(true);
   });
 
-  it("validates and consumes invite code in invite-only mode", async () => {
+  it("validates and consumes DB invite in invite-only mode", async () => {
     process.env.AUTH_SIGNUP_MODE = "invite_only";
-    process.env.INVITE_CODES = "code-a,code-b";
+    selectLimit.mockResolvedValueOnce([{ id: "i1" }]).mockResolvedValueOnce([]);
+    updateReturning.mockResolvedValueOnce([{ id: "i1" }]);
+
+    const { canSignUp, consumeInviteCode } = await import("../src/lib/invites");
 
     await expect(canSignUp("code-a")).resolves.toBe(true);
     await expect(consumeInviteCode("code-a")).resolves.toBe(true);
     await expect(canSignUp("code-a")).resolves.toBe(false);
-    await expect(canSignUp("code-b")).resolves.toBe(true);
   });
 });

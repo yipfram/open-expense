@@ -7,13 +7,3 @@ export function getSignupMode(): SignupMode {
   }
   return "invite_only";
 }
-
-export function getInviteCodes(): Set<string> {
-  const value = process.env.INVITE_CODES ?? "";
-  return new Set(
-    value
-      .split(",")
-      .map((code) => code.trim())
-      .filter(Boolean),
-  );
-}

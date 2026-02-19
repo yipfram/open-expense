@@ -19,7 +19,6 @@ Milestone 1 bootstrap for V1 using Next.js (App Router), TypeScript, pnpm, Bette
    - `DATABASE_URL`
    - `BETTER_AUTH_SECRET`
    - `AUTH_SIGNUP_MODE`
-   - `INVITE_CODES` (when `AUTH_SIGNUP_MODE=invite_only`)
 4. Optional admin seed:
    ```bash
    SEED_ADMIN_EMAIL=admin@example.com SEED_ADMIN_PASSWORD=ChangeMe123! pnpm seed:admin
@@ -84,7 +83,6 @@ Status mapping:
 - Admin endpoints:
   - `POST /api/admin/invites` to create invite tokens
   - `GET /api/admin/invites` to list invites
-- Temporary bootstrap fallback remains available with `INVITE_CODES` env var.
 
 ## Environment
 Copy `.env.example` to `.env` and fill values.

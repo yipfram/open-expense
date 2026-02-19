@@ -48,11 +48,20 @@ function isAppRole(value: string): value is AppRole {
 async function getPersistedRolesForUser(userId: string): Promise<AppRole[]> {
   const { db } = await import("@/src/db/client");
   const { roleAssignments } = await import("@/src/db/schema");
+  let rows: Array<{ role: string }>;
 
-  const rows = await db
-    .select({ role: roleAssignments.role })
-    .from(roleAssignments)
-    .where(eq(roleAssignments.userId, userId));
+  try {
+    rows = await db
+      .select({ role: roleAssignments.role })
+      .from(roleAssignments)
+      .where(eq(roleAssignments.userId, userId));
+  } catch (error) {
+    if (isMissingRoleAssignmentTableError(error)) {
+      console.warn("role_assignment table is missing. Run `pnpm db:migrate`.");
+      return [];
+    }
+    throw error;
+  }
 
   const roles = new Set<AppRole>();
   for (const row of rows) {
@@ -62,4 +71,42 @@ async function getPersistedRolesForUser(userId: string): Promise<AppRole[]> {
   }
 
   return Array.from(roles);
+}
+
+function isMissingRoleAssignmentTableError(error: unknown): boolean {
+  const queue: unknown[] = [error];
+  const seen = new Set<unknown>();
+  const details = new Set<string>();
+
+  while (queue.length > 0) {
+    const current = queue.shift();
+    if (!current || seen.has(current)) {
+      continue;
+    }
+    seen.add(current);
+
+    if (typeof current === "object") {
+      const record = current as Record<string, unknown>;
+      for (const key of ["code", "message", "detail", "hint", "table"]) {
+        const value = record[key];
+        if (typeof value === "string" && value.trim() !== "") {
+          details.add(value.toLowerCase());
+        }
+      }
+
+      if ("cause" in record) {
+        queue.push(record.cause);
+      }
+      if ("originalError" in record) {
+        queue.push(record.originalError);
+      }
+    }
+  }
+
+  if (details.has("42p01")) {
+    return true;
+  }
+
+  const combined = Array.from(details).join(" ");
+  return combined.includes("relation \"role_assignment\" does not exist");
 }
