@@ -1,4 +1,16 @@
-import { boolean, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+import {
+  boolean,
+  date,
+  index,
+  integer,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  varchar,
+} from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -74,3 +86,87 @@ export const roleAssignments = pgTable("role_assignment", {
   scopeProjectId: uuid("scope_project_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+export const expenseStatusEnum = pgEnum("expense_status", ["draft", "submitted", "received"]);
+export const paymentMethodEnum = pgEnum("payment_method", ["work_card", "personal_card"]);
+
+export const departments = pgTable("department", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: varchar("name", { length: 80 }).notNull().unique(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const projects = pgTable(
+  "project",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    departmentId: uuid("department_id")
+      .notNull()
+      .references(() => departments.id, { onDelete: "restrict" }),
+    name: varchar("name", { length: 100 }).notNull(),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    projectDepartmentIdx: index("project_department_id_idx").on(table.departmentId),
+  }),
+);
+
+export const expenses = pgTable(
+  "expense",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    publicId: varchar("public_id", { length: 32 }).notNull().unique(),
+    memberId: text("member_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "restrict" }),
+    departmentId: uuid("department_id").references(() => departments.id, { onDelete: "restrict" }),
+    projectId: uuid("project_id").references(() => projects.id, { onDelete: "restrict" }),
+    amountMinor: integer("amount_minor").notNull(),
+    currencyCode: varchar("currency_code", { length: 3 }).notNull().default("EUR"),
+    expenseDate: date("expense_date").notNull(),
+    category: varchar("category", { length: 50 }).notNull(),
+    paymentMethod: paymentMethodEnum("payment_method").notNull(),
+    comment: varchar("comment", { length: 500 }),
+    status: expenseStatusEnum("status").notNull().default("draft"),
+    submittedAt: timestamp("submitted_at", { withTimezone: true }),
+    receivedAt: timestamp("received_at", { withTimezone: true }),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    expenseStatusSubmittedIdx: index("expense_status_submitted_at_idx").on(table.status, table.submittedAt),
+    expenseMemberCreatedIdx: index("expense_member_created_at_idx").on(table.memberId, table.createdAt),
+    expenseProjectCreatedIdx: index("expense_project_created_at_idx").on(table.projectId, table.createdAt),
+  }),
+);
+
+export const expenseAttachments = pgTable("expense_attachment", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  expenseId: uuid("expense_id")
+    .notNull()
+    .unique()
+    .references(() => expenses.id, { onDelete: "cascade" }),
+  storageBucket: text("storage_bucket").notNull(),
+  storageKey: text("storage_key").notNull(),
+  mimeType: varchar("mime_type", { length: 128 }).notNull(),
+  sizeBytes: integer("size_bytes").notNull(),
+  originalFilename: varchar("original_filename", { length: 255 }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const expenseRelations = relations(expenses, ({ one }) => ({
+  attachment: one(expenseAttachments, {
+    fields: [expenses.id],
+    references: [expenseAttachments.expenseId],
+  }),
+}));
+
+export const expenseAttachmentRelations = relations(expenseAttachments, ({ one }) => ({
+  expense: one(expenses, {
+    fields: [expenseAttachments.expenseId],
+    references: [expenses.id],
+  }),
+}));

@@ -1,6 +1,6 @@
 # Open-expense
 
-Milestone 1 bootstrap for V1 using Next.js (App Router), TypeScript, pnpm, Better Auth, Drizzle ORM, and role-based route guards.
+Milestone 2 baseline for V1 using Next.js (App Router), TypeScript, pnpm, Better Auth, Drizzle ORM, role-based route guards, and S3 receipt storage.
 
 ## Requirements
 - Node.js 20+
@@ -19,6 +19,11 @@ Milestone 1 bootstrap for V1 using Next.js (App Router), TypeScript, pnpm, Bette
    - `DATABASE_URL`
    - `BETTER_AUTH_SECRET`
    - `AUTH_SIGNUP_MODE`
+   - `S3_ENDPOINT`
+   - `S3_REGION`
+   - `S3_BUCKET`
+   - `S3_ACCESS_KEY`
+   - `S3_SECRET_KEY`
 4. Optional admin seed:
    ```bash
    SEED_ADMIN_EMAIL=admin@example.com SEED_ADMIN_PASSWORD=ChangeMe123! pnpm seed:admin
@@ -89,8 +94,21 @@ Copy `.env.example` to `.env` and fill values.
 
 Auth mode defaults to invite-only (`AUTH_SIGNUP_MODE=invite_only`).
 
+## Member Expense API (Milestone 2)
+- `GET /api/member/expenses`
+- `POST /api/member/expenses` (multipart with `receipt`)
+- `PUT /api/member/expenses/:expenseId` (multipart, optional `receipt` replacement)
+- `DELETE /api/member/expenses/:expenseId`
+- `POST /api/member/expenses/:expenseId/submit`
+
+Rules:
+- Receipts are stored in S3-compatible object storage.
+- Receipt file types: `jpg/jpeg/png/pdf`.
+- Maximum receipt file size: `10 MB`.
+- Members can edit/delete only while expense status is `draft`.
+
 ## Milestone Mapping
-This repository is currently aligned to Milestone 1 foundations defined in `docs/milestones-v1.md`.
+This repository is currently aligned to Milestone 2 implementation scope in `docs/milestones-v1.md`.
 
 ## Cross-Session Context
 - Current implementation handoff: `docs/current-work-handoff.md`

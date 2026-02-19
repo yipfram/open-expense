@@ -20,6 +20,7 @@
     "db:check:auth": "tsx scripts/check-auth-schema.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.993.0",
     "better-auth": "1.4.18",
     "drizzle-orm": "^0.45.1",
     "next": "16.1.6",

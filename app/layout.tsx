@@ -7,6 +7,7 @@ import { PerformanceGuard } from "@/app/performance-guard";
 export const metadata: Metadata = {
   title: "Open-expense",
   description: "Self-hosted expense collection app",
+  manifest: "/manifest.webmanifest",
 };
 
 type RootLayoutProps = {

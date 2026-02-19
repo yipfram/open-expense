@@ -36,6 +36,13 @@
       "when": 1771489650802,
       "tag": "0004_shocking_vanisher",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1771491000000,
+      "tag": "0005_candid_expense_foundations",
+      "breakpoints": true
     }
   ]
 }

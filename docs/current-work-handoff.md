@@ -1,6 +1,6 @@
 # Current Work Handoff (V1)
 
-Last updated: 2026-02-18
+Last updated: 2026-02-19
 
 ## Purpose
 Cross-session execution context for the current implementation state.
@@ -13,7 +13,7 @@ Primary source-of-truth docs:
 - `docs/milestones-v1.md`
 
 ## Current Milestone Focus
-- Milestone 1: Auth and Roles (`EXP-6`)
+- Milestone 2: Member Submission (Mobile First)
 
 ## Implemented So Far
 - Next.js App Router + TypeScript + pnpm bootstrap.
@@ -45,6 +45,17 @@ Primary source-of-truth docs:
 - Auth submit flows now use explicit API routes with status codes:
   - `POST /api/auth/sign-in`
   - `POST /api/auth/sign-up`
+- Member expense submission flow implemented:
+  - `GET /api/member/expenses`
+  - `POST /api/member/expenses`
+  - `PUT /api/member/expenses/:expenseId`
+  - `DELETE /api/member/expenses/:expenseId`
+  - `POST /api/member/expenses/:expenseId/submit`
+- Expense domain schema and migrations added:
+  - `department`, `project`, `expense`, `expense_attachment`
+  - enums `expense_status`, `payment_method`
+- Receipt storage switched to S3-compatible bucket uploads.
+- Member UI now includes mobile-first draft create/edit/delete/submit manager.
 
 ## API Error Status Contract (Implemented)
 - `400`: validation errors
@@ -55,11 +66,11 @@ Primary source-of-truth docs:
 - `500`: unexpected server errors
 
 ## Known Technical Gaps
-- No major auth/role schema ambiguity remains for Milestone 1 scope.
+- Finance inbox, notifications, and audit trail are pending future milestones.
 
 ## Recommended Next Steps
-1. Move Milestone 1 issue to review.
-2. Start Milestone 2 (member submission flow).
+1. Add integration tests for member expense API routes.
+2. Start Milestone 3 finance inbox list and processing flow.
 
 ## Useful Commands
 ```bash
