@@ -1,5 +1,6 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { NextRequest, NextResponse } from "next/server";
+import { SETTINGS_PATH, WORKSPACE_PATH } from "@/src/lib/routes";
 
 const AUTH_PAGES = ["/sign-in", "/sign-up"];
 
@@ -8,7 +9,7 @@ export function proxy(request: NextRequest) {
   const sessionCookie = getSessionCookie(request);
   const isAuthenticated = Boolean(sessionCookie);
   const isProtectedRoute =
-    pathname.startsWith("/member") || pathname.startsWith("/finance") || pathname.startsWith("/admin");
+    pathname.startsWith(WORKSPACE_PATH) || pathname.startsWith(SETTINGS_PATH);
 
   if (!isAuthenticated && isProtectedRoute) {
     return NextResponse.redirect(new URL("/sign-in", request.url));
@@ -22,5 +23,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/member/:path*", "/finance/:path*", "/admin/:path*", "/sign-in", "/sign-up"],
+  matcher: ["/app/:path*", "/settings/:path*", "/sign-in", "/sign-up"],
 };

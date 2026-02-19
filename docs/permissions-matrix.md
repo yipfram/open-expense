@@ -43,3 +43,14 @@ Notes:
 |---|---|---|---|---|
 | View own change history | R | R | R | R |
 | View full audit trail | - | - | - | R |
+
+## Route and View Access (V1)
+- Canonical protected workspace path: `/app`.
+- Workspace views:
+  - `view=member`: member, manager, finance, admin
+  - `view=finance`: finance, admin
+- Canonical admin settings path: `/settings` (admin only).
+- Legacy role-scoped page routes (`/member`, `/finance`, `/admin`) are not used.
+- UI labels are task-based:
+  - `Submit` maps to `view=member`
+  - `Process` maps to `view=finance`

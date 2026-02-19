@@ -27,7 +27,7 @@ Primary source-of-truth docs:
 - Better Auth schema tables implemented and migrated:
   - `user`, `session`, `account`, `verification`
 - Auth routes and role-protected pages scaffolded:
-  - `/sign-in`, `/sign-up`, `/member`, `/finance`, `/admin`
+  - `/sign-in`, `/sign-up`, `/app`, `/settings`
 - Role persistence implemented via `role_assignment` table and DB-backed role checks.
 - Admin seed now persists admin/member/finance assignments in `role_assignment`.
 - Invite flow upgraded to DB-backed lifecycle via Drizzle `invites` table.
@@ -56,6 +56,11 @@ Primary source-of-truth docs:
   - enums `expense_status`, `payment_method`
 - Receipt storage switched to S3-compatible bucket uploads.
 - Member UI now includes mobile-first draft create/edit/delete/submit manager.
+- Workspace shell now uses a burger menu in `/app` with task labels:
+  - `Submit` (`view=member`)
+  - `Process` (`view=finance`)
+  - `Settings` (admin only)
+  - `Sign out`
 
 ## API Error Status Contract (Implemented)
 - `400`: validation errors

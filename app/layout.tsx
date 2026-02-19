@@ -2,6 +2,7 @@ import "./globals.css";
 
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { BurgerMenu } from "@/app/burger-menu";
 import { PerformanceGuard } from "@/app/performance-guard";
 
 export const metadata: Metadata = {
@@ -14,11 +15,12 @@ type RootLayoutProps = {
   children: ReactNode;
 };
 
-export default function RootLayout({ children }: RootLayoutProps) {
+export default async function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
-      <body className="min-h-screen">
+      <body className="min-h-screen overflow-x-hidden">
         <PerformanceGuard />
+        <BurgerMenu />
         {children}
       </body>
     </html>

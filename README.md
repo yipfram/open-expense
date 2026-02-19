@@ -94,6 +94,14 @@ Copy `.env.example` to `.env` and fill values.
 
 Auth mode defaults to invite-only (`AUTH_SIGNUP_MODE=invite_only`).
 
+## Protected UI Routes
+- Workspace: `/app`
+  - Submit: `/app?view=member`
+  - Process: `/app?view=finance`
+- Settings (admin): `/settings`
+
+Note: task labels in UI are `Submit` and `Process`; technical view slugs remain `member` and `finance`.
+
 ## Member Expense API (Milestone 2)
 - `GET /api/member/expenses`
 - `POST /api/member/expenses` (multipart with `receipt`)
