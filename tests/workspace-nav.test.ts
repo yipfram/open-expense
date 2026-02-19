@@ -15,6 +15,7 @@ describe("buildWorkspaceNavItems", () => {
 
     expect(items.map((item) => item.label)).toEqual(["Submit", "Sign out"]);
     expect(items[0]?.active).toBe(true);
+    expect(items[0]?.href).toBe("/app");
   });
 
   it("returns process + sign out for finance-only access", () => {
@@ -29,6 +30,7 @@ describe("buildWorkspaceNavItems", () => {
 
     expect(items.map((item) => item.label)).toEqual(["Process", "Sign out"]);
     expect(items[0]?.active).toBe(true);
+    expect(items[0]?.href).toBe("/app?view=finance");
   });
 
   it("returns submit/process/settings/sign out for admin access", () => {
@@ -44,5 +46,7 @@ describe("buildWorkspaceNavItems", () => {
     expect(items.map((item) => item.label)).toEqual(["Submit", "Process", "Settings", "Sign out"]);
     expect(items[0]?.active).toBe(false);
     expect(items[1]?.active).toBe(true);
+    expect(items[0]?.href).toBe("/app");
+    expect(items[1]?.href).toBe("/app?view=finance");
   });
 });

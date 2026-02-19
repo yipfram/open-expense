@@ -10,10 +10,11 @@ describe("workspace routing rules", () => {
     expect(parseWorkspaceView(undefined)).toBeUndefined();
   });
 
-  it("defaults to finance for finance/admin roles", () => {
-    expect(getDefaultWorkspaceView(["finance"])).toBe("finance");
-    expect(getDefaultWorkspaceView(["admin"])).toBe("finance");
+  it("defaults to member for all role combinations", () => {
+    expect(getDefaultWorkspaceView(["finance"])).toBe("member");
+    expect(getDefaultWorkspaceView(["admin"])).toBe("member");
     expect(getDefaultWorkspaceView(["member", "manager"])).toBe("member");
+    expect(getDefaultWorkspaceView([])).toBe("member");
   });
 
   it("enforces per-view access rules", () => {

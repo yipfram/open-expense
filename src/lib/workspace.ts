@@ -12,7 +12,8 @@ export function parseWorkspaceView(value: string | undefined): WorkspaceView | u
 }
 
 export function getDefaultWorkspaceView(roles: readonly AppRole[]): WorkspaceView {
-  return roles.includes("finance") || roles.includes("admin") ? "finance" : "member";
+  void roles;
+  return "member";
 }
 
 export function canAccessWorkspaceView(view: WorkspaceView, roles: readonly AppRole[]): boolean {

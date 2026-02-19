@@ -43,7 +43,7 @@ export function BurgerMenuClient({ items, isAuthenticated }: BurgerMenuClientPro
   }, []);
 
   return (
-    <div ref={containerRef} className="fixed inset-x-0 top-4 z-50 mx-auto w-full max-w-5xl px-4 sm:px-6">
+    <div ref={containerRef} className="fixed inset-x-0 top-4 z-50 mx-auto w-full max-w-7xl px-3 sm:px-4 md:px-6">
       <button
         type="button"
         className="ml-auto flex h-10 w-10 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-900 shadow-sm hover:bg-slate-50"
@@ -58,7 +58,7 @@ export function BurgerMenuClient({ items, isAuthenticated }: BurgerMenuClientPro
       {isOpen ? (
         <div
           id="global-burger-menu"
-          className="absolute right-4 mt-2 w-64 rounded-lg border border-slate-200 bg-white p-2 shadow-lg sm:right-6"
+          className="absolute right-3 mt-2 w-64 rounded-lg border border-slate-200 bg-white p-2 shadow-lg sm:right-4 md:right-6"
           role="menu"
           aria-label="Global navigation"
         >

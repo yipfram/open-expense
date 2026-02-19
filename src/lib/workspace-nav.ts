@@ -23,7 +23,7 @@ export function buildWorkspaceNavItems(input: WorkspaceNavInput): WorkspaceNavIt
     items.push({
       key: "submit",
       label: "Submit",
-      href: `${input.workspacePath}?view=member`,
+      href: input.workspacePath,
       active: input.activeView === "member",
     });
   }

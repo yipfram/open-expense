@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 
 import { ExpenseManager } from "@/app/member/expense-manager";
-import { WORKSPACE_PATH } from "@/src/lib/routes";
 import { getUserRoles } from "@/src/lib/roles";
 import { requireSession } from "@/src/lib/session";
 import { canAccessWorkspaceView, getDefaultWorkspaceView, parseWorkspaceView } from "@/src/lib/workspace";
@@ -17,11 +16,6 @@ export default async function WorkspacePage({ searchParams }: WorkspacePageProps
   const requestedView = getSingleParam(params?.view);
   const parsedView = parseWorkspaceView(requestedView);
   const defaultView = getDefaultWorkspaceView(roles);
-
-  if (requestedView && !parsedView) {
-    redirect(`${WORKSPACE_PATH}?view=${defaultView}`);
-  }
-
   const activeView = parsedView ?? defaultView;
 
   if (!canAccessWorkspaceView(activeView, roles)) {
@@ -29,13 +23,15 @@ export default async function WorkspacePage({ searchParams }: WorkspacePageProps
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl min-w-0 flex-col gap-6 px-4 py-10 sm:px-6">
-      <header className="min-w-0">
-        <h1 className="text-3xl font-semibold tracking-tight">Workspace</h1>
-        <p className="break-all text-slate-700">Welcome {session.user.email}.</p>
-      </header>
+    <main className="mx-auto flex w-full max-w-7xl min-w-0 flex-col gap-6 px-3 py-10 sm:px-4 md:px-6">
+      {activeView === "finance" ? (
+        <header className="min-w-0">
+          <h1 className="text-2xl font-semibold tracking-tight">Workspace</h1>
+          <p className="break-all text-slate-700">Welcome {session.user.email}.</p>
+        </header>
+      ) : null}
 
-      {activeView === "member" ? <ExpenseManager /> : <FinanceWorkspace />}
+      {activeView === "member" ? <ExpenseManager userEmail={session.user.email} userName={session.user.name} /> : <FinanceWorkspace />}
     </main>
   );
 }
