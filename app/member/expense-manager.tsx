@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Camera, Upload } from "lucide-react";
+import { CardListSkeleton } from "@/app/ui/list-skeletons";
 
 type PaymentMethod = "work_card" | "personal_card";
 type ExpenseStatus = "draft" | "submitted" | "received";
@@ -58,6 +60,8 @@ export function ExpenseManager() {
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [feedback, setFeedback] = useState("");
   const [error, setError] = useState("");
+  const cameraInputRef = useRef<HTMLInputElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const selectedExpense = useMemo(
     () => expenses.find((expense) => expense.id === selectedExpenseId) ?? null,
@@ -234,8 +238,8 @@ export function ExpenseManager() {
   }
 
   return (
-    <section className="grid gap-6 md:grid-cols-[1.2fr_1fr]">
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+    <section className="grid min-w-0 gap-6 md:grid-cols-[1.2fr_1fr]">
+      <div className="min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-xl font-semibold tracking-tight">My expenses</h2>
           <button
@@ -248,7 +252,10 @@ export function ExpenseManager() {
         </div>
 
         {isLoading ? (
-          <p className="mt-4 text-sm text-slate-600">Loading expenses...</p>
+          <div aria-busy>
+            <p className="mt-4 text-sm text-slate-600">Loading expenses...</p>
+            <CardListSkeleton />
+          </div>
         ) : expenses.length === 0 ? (
           <p className="mt-4 text-sm text-slate-600">No expenses yet. Create your first draft.</p>
         ) : (
@@ -260,12 +267,12 @@ export function ExpenseManager() {
                   <button
                     type="button"
                     onClick={() => setSelectedExpenseId(expense.id)}
-                    className={`w-full rounded-lg border p-3 text-left ${
+                    className={`w-full min-w-0 rounded-lg border p-3 text-left ${
                       isSelected ? "border-slate-900 bg-slate-50" : "border-slate-200"
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-semibold">{expense.publicId}</p>
+                      <p className="break-all text-sm font-semibold">{expense.publicId}</p>
                       <span
                         className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                           expense.status === "draft"
@@ -290,7 +297,7 @@ export function ExpenseManager() {
         )}
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+      <div className="min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-xl font-semibold tracking-tight">{selectedExpense ? "Edit draft" : "Create draft"}</h2>
           {selectedExpense ? (
@@ -305,6 +312,51 @@ export function ExpenseManager() {
         </div>
 
         <form className="mt-4 grid gap-3" onSubmit={handleSave}>
+          <div className="grid gap-2">
+            <span className="text-sm font-medium text-slate-700">Receipt</span>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => cameraInputRef.current?.click()}
+                className="flex min-h-24 w-full flex-col items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-white transition hover:bg-slate-800"
+              >
+                <Camera aria-hidden className="h-7 w-7" />
+                <span className="mt-1 text-base font-semibold">Take photo</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex min-h-24 w-full flex-col items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 transition hover:bg-slate-50"
+              >
+                <Upload aria-hidden className="h-7 w-7" />
+                <span className="mt-1 text-base font-semibold">Import file</span>
+              </button>
+            </div>
+            <input
+              ref={cameraInputRef}
+              name="receipt-camera"
+              type="file"
+              capture="environment"
+              accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+              onChange={(event) => setReceiptFile(event.target.files?.[0] ?? null)}
+              className="sr-only"
+            />
+            <input
+              ref={fileInputRef}
+              name="receipt"
+              type="file"
+              accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+              onChange={(event) => setReceiptFile(event.target.files?.[0] ?? null)}
+              className="sr-only"
+            />
+            <p className="text-xs text-slate-600">JPG, PNG, PDF up to 10 MB.</p>
+            {receiptFile ? (
+              <p className="break-all text-xs text-slate-700">
+                Selected: {receiptFile.name} ({Math.ceil(receiptFile.size / 1024)} KB)
+              </p>
+            ) : null}
+          </div>
+
           <label className="grid gap-1 text-sm">
             <span className="font-medium text-slate-700">Amount (EUR)</span>
             <input
@@ -371,21 +423,8 @@ export function ExpenseManager() {
             />
           </label>
 
-          <label className="grid gap-1 text-sm">
-            <span className="font-medium text-slate-700">
-              Receipt ({selectedExpense ? "replace optional" : "required"}, jpg/png/pdf, max 10 MB)
-            </span>
-            <input
-              name="receipt"
-              type="file"
-              accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
-              onChange={(event) => setReceiptFile(event.target.files?.[0] ?? null)}
-              className="rounded-md border border-slate-300 bg-white px-3 py-2"
-            />
-          </label>
-
           {selectedExpense?.receipt ? (
-            <p className="text-xs text-slate-600">
+            <p className="break-all text-xs text-slate-600">
               Current receipt: {selectedExpense.receipt.originalFilename} ({Math.ceil(selectedExpense.receipt.sizeBytes / 1024)} KB)
             </p>
           ) : null}
@@ -422,8 +461,8 @@ export function ExpenseManager() {
           </button>
         ) : null}
 
-        {feedback ? <p className="mt-3 text-sm text-emerald-700">{feedback}</p> : null}
-        {error ? <p className="mt-3 text-sm text-rose-700">{error}</p> : null}
+        {feedback ? <p className="mt-3 break-all text-sm text-emerald-700">{feedback}</p> : null}
+        {error ? <p className="mt-3 break-all text-sm text-rose-700">{error}</p> : null}
       </div>
     </section>
   );

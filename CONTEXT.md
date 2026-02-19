@@ -13,7 +13,7 @@ This project is **not** an accounting system.
 4. IT (deployment target, not a day-to-day business user)
 
 ### Member
-- Main device: phone (mobile-first experience).
+- Main device: phone (mobile-first experience)."
 - Uses a PWA to submit expenses.
 - Creates one expense per submission in v1.
 - Uploads one receipt photo/file.

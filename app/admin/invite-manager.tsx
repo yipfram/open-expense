@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { TableSkeleton } from "@/app/ui/list-skeletons";
 
 type Invite = {
   id: string;
@@ -93,7 +94,7 @@ export function InviteManager() {
 
   return (
     <section className="grid gap-6">
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+      <div className="min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
         <h2 className="text-xl font-semibold tracking-tight">Create invite</h2>
         <p className="mt-1 text-sm text-slate-600">Generate a one-time invite code for new members.</p>
         <form className="mt-4 grid gap-3 sm:grid-cols-6" onSubmit={handleCreateInvite}>
@@ -136,11 +137,11 @@ export function InviteManager() {
             </button>
           </div>
         </form>
-        {feedback ? <p className="mt-3 text-sm text-emerald-700">{feedback}</p> : null}
+        {feedback ? <p className="mt-3 break-all text-sm text-emerald-700">{feedback}</p> : null}
         {error ? <p className="mt-3 text-sm text-rose-700">{error}</p> : null}
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+      <div className="min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-xl font-semibold tracking-tight">Recent invites</h2>
           <button
@@ -153,12 +154,15 @@ export function InviteManager() {
         </div>
 
         {isLoading ? (
-          <p className="mt-3 text-sm text-slate-600">Loading invites...</p>
+          <div aria-busy>
+            <p className="mt-3 text-sm text-slate-600">Loading invites...</p>
+            <TableSkeleton />
+          </div>
         ) : invites.length === 0 ? (
           <p className="mt-3 text-sm text-slate-600">No invites yet.</p>
         ) : (
-          <div className="mt-4 overflow-x-auto">
-            <table className="min-w-full border-collapse text-left text-sm">
+          <div className="mt-4 w-full overflow-x-auto">
+            <table className="min-w-[760px] border-collapse text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-200 text-slate-600">
                   <th className="py-2 pr-4 font-medium">Token</th>
@@ -171,8 +175,8 @@ export function InviteManager() {
               <tbody>
                 {invites.map((invite) => (
                   <tr key={invite.id} className="border-b border-slate-100 align-top">
-                    <td className="py-2 pr-4 font-mono text-xs">{invite.token}</td>
-                    <td className="py-2 pr-4">{invite.email ?? "-"}</td>
+                    <td className="max-w-[16rem] py-2 pr-4 font-mono text-xs break-all">{invite.token}</td>
+                    <td className="max-w-[14rem] py-2 pr-4 break-all">{invite.email ?? "-"}</td>
                     <td className="py-2 pr-4">{formatDate(invite.expiresAt)}</td>
                     <td className="py-2 pr-4">{invite.usedAt ? formatDate(invite.usedAt) : "No"}</td>
                     <td className="py-2 pr-4">

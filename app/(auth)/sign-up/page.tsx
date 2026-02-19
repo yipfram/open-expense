@@ -8,7 +8,7 @@ export default function SignUpPage() {
   const requireInvite = signupMode === "invite_only";
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-col gap-1 px-4 py-10 sm:px-0">
+    <main className="mx-auto flex w-full max-w-md min-w-0 flex-col gap-1 px-4 py-10 sm:px-4">
       <h1 className="text-3xl font-semibold tracking-tight">Sign up</h1>
       {requireInvite ? <p className="text-sm text-slate-700">Invite-only mode is enabled.</p> : null}
       <SignUpForm requireInvite={requireInvite} />

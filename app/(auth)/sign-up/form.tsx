@@ -61,7 +61,7 @@ export function SignUpForm({ requireInvite }: SignUpFormProps) {
         Name
       </label>
       <input
-        className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-slate-300 focus:ring-2"
+        className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-slate-300 focus:ring-2"
         id="name"
         name="name"
         type="text"
@@ -73,7 +73,7 @@ export function SignUpForm({ requireInvite }: SignUpFormProps) {
         Email
       </label>
       <input
-        className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-slate-300 focus:ring-2"
+        className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-slate-300 focus:ring-2"
         id="email"
         name="email"
         type="email"
@@ -85,7 +85,7 @@ export function SignUpForm({ requireInvite }: SignUpFormProps) {
         Password
       </label>
       <input
-        className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-slate-300 focus:ring-2"
+        className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-slate-300 focus:ring-2"
         id="password"
         name="password"
         type="password"
@@ -99,7 +99,7 @@ export function SignUpForm({ requireInvite }: SignUpFormProps) {
             Invite code
           </label>
           <input
-            className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-slate-300 focus:ring-2"
+            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-slate-300 focus:ring-2"
             id="inviteCode"
             name="inviteCode"
             type="text"
@@ -111,11 +111,11 @@ export function SignUpForm({ requireInvite }: SignUpFormProps) {
       {state.error ? (
         <p className="text-sm text-rose-700">
           {state.error}
-          {state.requestId ? <span className="block text-xs text-rose-600">Ref: {state.requestId}</span> : null}
+          {state.requestId ? <span className="block break-all text-xs text-rose-600">Ref: {state.requestId}</span> : null}
         </p>
       ) : null}
       <button
-        className="mt-1 w-fit rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-70"
+        className="mt-1 w-full rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-70 sm:w-fit"
         disabled={isPending}
         type="submit"
       >

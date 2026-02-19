@@ -4,7 +4,7 @@ import { SignInForm } from "@/app/(auth)/sign-in/form";
 
 export default function SignInPage() {
   return (
-    <main className="mx-auto flex w-full max-w-md flex-col px-4 py-10 sm:px-0">
+    <main className="mx-auto flex w-full max-w-md min-w-0 flex-col px-4 py-10 sm:px-4">
       <h1 className="text-3xl font-semibold tracking-tight">Sign in</h1>
       <SignInForm />
       <p className="text-sm text-slate-700">
