@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { extname } from "node:path";
 
 import { db } from "@/src/db/client";
-import { expenseAttachments, expenses } from "@/src/db/schema";
+import { expenseAttachments, expenses, roleAssignments } from "@/src/db/schema";
 import { ExpenseError } from "@/src/lib/expense-errors";
 import {
   type PaymentMethod,
@@ -11,6 +11,7 @@ import {
   assertValidReceiptFile,
   validateExpenseInput,
 } from "@/src/lib/expense-validation";
+import type { AppRole } from "@/src/lib/roles";
 import { deleteReceiptFromStorage, uploadReceiptToStorage } from "@/src/lib/storage";
 
 const RECEIPT_KEY_PREFIX = "receipts";
@@ -39,6 +40,18 @@ export type ExpenseRecord = {
   } | null;
 };
 
+type ExpenseDetailViewer = {
+  expenseId: string;
+  viewerUserId: string;
+  viewerRoles: AppRole[];
+};
+
+export type ExpenseReceiptRecord = {
+  expenseId: string;
+  storageKey: string;
+  originalFilename: string;
+  mimeType: string;
+};
 
 export async function listMemberExpenses(memberId: string): Promise<ExpenseRecord[]> {
   const rows = await db
@@ -91,6 +104,130 @@ export async function listMemberExpenses(memberId: string): Promise<ExpenseRecor
         }
       : null,
   }));
+}
+
+export async function getExpenseDetailForViewer({
+  expenseId,
+  viewerUserId,
+  viewerRoles,
+}: ExpenseDetailViewer): Promise<ExpenseRecord> {
+  const rows = await db
+    .select({
+      id: expenses.id,
+      memberId: expenses.memberId,
+      publicId: expenses.publicId,
+      amountMinor: expenses.amountMinor,
+      currencyCode: expenses.currencyCode,
+      expenseDate: expenses.expenseDate,
+      category: expenses.category,
+      paymentMethod: expenses.paymentMethod,
+      comment: expenses.comment,
+      departmentId: expenses.departmentId,
+      projectId: expenses.projectId,
+      status: expenses.status,
+      createdAt: expenses.createdAt,
+      updatedAt: expenses.updatedAt,
+      submittedAt: expenses.submittedAt,
+      attachmentId: expenseAttachments.id,
+      attachmentOriginalFilename: expenseAttachments.originalFilename,
+      attachmentMimeType: expenseAttachments.mimeType,
+      attachmentSizeBytes: expenseAttachments.sizeBytes,
+    })
+    .from(expenses)
+    .leftJoin(expenseAttachments, eq(expenseAttachments.expenseId, expenses.id))
+    .where(and(eq(expenses.id, expenseId), isNull(expenses.deletedAt)))
+    .limit(1);
+
+  const row = rows[0];
+  if (!row) {
+    throw new ExpenseError(404, "expense_not_found", "Expense was not found.");
+  }
+
+  const canRead = await canViewerReadExpense({
+    expenseMemberId: row.memberId,
+    expenseDepartmentId: row.departmentId,
+    expenseProjectId: row.projectId,
+    viewerUserId,
+    viewerRoles,
+  });
+
+  if (!canRead) {
+    throw new ExpenseError(403, "forbidden", "Forbidden.");
+  }
+
+  return {
+    id: row.id,
+    publicId: row.publicId,
+    amountMinor: row.amountMinor,
+    currencyCode: row.currencyCode,
+    expenseDate: row.expenseDate,
+    category: row.category,
+    paymentMethod: row.paymentMethod,
+    comment: row.comment,
+    departmentId: row.departmentId,
+    projectId: row.projectId,
+    status: row.status,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+    submittedAt: row.submittedAt ? row.submittedAt.toISOString() : null,
+    receipt: row.attachmentId
+      ? {
+          id: row.attachmentId,
+          originalFilename: row.attachmentOriginalFilename ?? "receipt",
+          mimeType: row.attachmentMimeType ?? "application/octet-stream",
+          sizeBytes: row.attachmentSizeBytes ?? 0,
+        }
+      : null,
+  };
+}
+
+export async function getExpenseReceiptForViewer({
+  expenseId,
+  viewerUserId,
+  viewerRoles,
+}: ExpenseDetailViewer): Promise<ExpenseReceiptRecord> {
+  const rows = await db
+    .select({
+      id: expenses.id,
+      memberId: expenses.memberId,
+      departmentId: expenses.departmentId,
+      projectId: expenses.projectId,
+      attachmentStorageKey: expenseAttachments.storageKey,
+      attachmentOriginalFilename: expenseAttachments.originalFilename,
+      attachmentMimeType: expenseAttachments.mimeType,
+    })
+    .from(expenses)
+    .leftJoin(expenseAttachments, eq(expenseAttachments.expenseId, expenses.id))
+    .where(and(eq(expenses.id, expenseId), isNull(expenses.deletedAt)))
+    .limit(1);
+
+  const row = rows[0];
+  if (!row) {
+    throw new ExpenseError(404, "expense_not_found", "Expense was not found.");
+  }
+
+  const canRead = await canViewerReadExpense({
+    expenseMemberId: row.memberId,
+    expenseDepartmentId: row.departmentId,
+    expenseProjectId: row.projectId,
+    viewerUserId,
+    viewerRoles,
+  });
+
+  if (!canRead) {
+    throw new ExpenseError(403, "forbidden", "Forbidden.");
+  }
+
+  if (!row.attachmentStorageKey) {
+    throw new ExpenseError(404, "receipt_not_found", "Receipt was not found.");
+  }
+
+  return {
+    expenseId: row.id,
+    storageKey: row.attachmentStorageKey,
+    originalFilename: row.attachmentOriginalFilename ?? "receipt",
+    mimeType: row.attachmentMimeType ?? "application/octet-stream",
+  };
 }
 
 export async function createDraftExpense(memberId: string, input: UpsertExpenseInput, receipt: File): Promise<ExpenseRecord> {
@@ -341,6 +478,48 @@ async function getMemberExpenseById(memberId: string, expenseId: string): Promis
         }
       : null,
   };
+}
+
+type ViewerAccessInput = {
+  expenseMemberId: string;
+  expenseDepartmentId: string | null;
+  expenseProjectId: string | null;
+  viewerUserId: string;
+  viewerRoles: AppRole[];
+};
+
+async function canViewerReadExpense({
+  expenseMemberId,
+  expenseDepartmentId,
+  expenseProjectId,
+  viewerUserId,
+  viewerRoles,
+}: ViewerAccessInput): Promise<boolean> {
+  if (expenseMemberId === viewerUserId) {
+    return true;
+  }
+
+  if (viewerRoles.includes("admin") || viewerRoles.includes("finance")) {
+    return true;
+  }
+
+  if (!viewerRoles.includes("manager")) {
+    return false;
+  }
+
+  const managerAssignments = await db
+    .select({
+      scopeDepartmentId: roleAssignments.scopeDepartmentId,
+      scopeProjectId: roleAssignments.scopeProjectId,
+    })
+    .from(roleAssignments)
+    .where(and(eq(roleAssignments.userId, viewerUserId), eq(roleAssignments.role, "manager")));
+
+  return managerAssignments.some((assignment) => {
+    const departmentAllowed = assignment.scopeDepartmentId === null || assignment.scopeDepartmentId === expenseDepartmentId;
+    const projectAllowed = assignment.scopeProjectId === null || assignment.scopeProjectId === expenseProjectId;
+    return departmentAllowed && projectAllowed;
+  });
 }
 
 async function nextPublicExpenseId(date: Date): Promise<string> {

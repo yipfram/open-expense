@@ -1,4 +1,5 @@
-import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { Readable } from "node:stream";
 
 let cachedClient: S3Client | null = null;
 
@@ -39,6 +40,27 @@ export async function deleteReceiptFromStorage(key: string) {
   );
 }
 
+export async function getReceiptFromStorage(key: string) {
+  const client = getS3Client();
+  const config = getStorageConfig();
+  const output = await client.send(
+    new GetObjectCommand({
+      Bucket: config.bucket,
+      Key: key,
+    }),
+  );
+
+  if (!output.Body) {
+    throw new Error("Receipt object body is empty.");
+  }
+
+  return {
+    body: toWebStream(output.Body),
+    contentType: output.ContentType ?? "application/octet-stream",
+    contentLength: typeof output.ContentLength === "number" ? output.ContentLength : undefined,
+  };
+}
+
 function getS3Client() {
   if (cachedClient) {
     return cachedClient;
@@ -56,6 +78,26 @@ function getS3Client() {
   });
 
   return cachedClient;
+}
+
+function toWebStream(body: unknown): ReadableStream<Uint8Array> {
+  if (isSdkBodyWithTransform(body)) {
+    return body.transformToWebStream();
+  }
+
+  if (body instanceof Readable) {
+    return Readable.toWeb(body) as ReadableStream<Uint8Array>;
+  }
+
+  throw new Error("Unsupported S3 body stream type.");
+}
+
+function isSdkBodyWithTransform(value: unknown): value is { transformToWebStream: () => ReadableStream<Uint8Array> } {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  return "transformToWebStream" in value && typeof (value as { transformToWebStream?: unknown }).transformToWebStream === "function";
 }
 
 function getStorageConfig() {

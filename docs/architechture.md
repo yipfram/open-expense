@@ -19,6 +19,7 @@ The system collects and organizes receipts, and is not an accounting platform.
 9. Milestone 0 bootstrap mode: local-first development using pnpm (no mandatory Docker setup).
 10. Email templates in v1: plain text; branded HTML can be introduced later.
 11. Protected UI routing uses a unified workspace path (`/app`) with role-aware view selection via query param (`?view=member|finance`) and a separate admin settings path (`/settings`).
+12. Expense detail pages are shareable internal routes under `/app/expense/[id]` and remain protected by role-based access checks.
 
 ## Domain and Workflow Decisions
 1. One deployment = one organization.

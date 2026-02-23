@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   BarChart3,
@@ -106,6 +107,7 @@ const MOBILE_SECTIONS: { key: MemberShellSection; label: string; icon: typeof Ho
 ];
 
 export function ExpenseManager({ userEmail, userName, isAdmin }: ExpenseManagerProps) {
+  const router = useRouter();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -436,8 +438,7 @@ export function ExpenseManager({ userEmail, userName, isAdmin }: ExpenseManagerP
               expenses={expenses}
               isLoading={isLoading}
               onSelectExpense={(expenseId) => {
-                setSelectedExpenseId(expenseId);
-                setActiveSection("home");
+                router.push(`/app/expense/${expenseId}`);
               }}
             />
           ) : null}

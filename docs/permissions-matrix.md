@@ -49,6 +49,10 @@ Notes:
 - Workspace views:
   - `view=member`: member, manager, finance, admin
   - `view=finance`: finance, admin
+- Expense detail route: `/app/expense/[id]`
+  - owner can read
+  - manager can read if scope matches department/project assignment
+  - finance and admin can read
 - Canonical admin settings path: `/settings` (admin only).
 - Legacy role-scoped page routes (`/member`, `/finance`, `/admin`) are not used.
 - UI labels are task-based:
