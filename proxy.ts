@@ -11,8 +11,12 @@ export function proxy(request: NextRequest) {
   const isProtectedRoute =
     pathname.startsWith(WORKSPACE_PATH) || pathname.startsWith(SETTINGS_PATH);
 
+  if (isAuthenticated && pathname === "/") {
+    return NextResponse.redirect(new URL(WORKSPACE_PATH, request.url));
+  }
+
   if (!isAuthenticated && isProtectedRoute) {
-    return NextResponse.redirect(new URL("/sign-in", request.url));
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   if (isAuthenticated && AUTH_PAGES.includes(pathname)) {
@@ -23,5 +27,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/app/:path*", "/settings/:path*", "/sign-in", "/sign-up"],
+  matcher: ["/", "/app/:path*", "/settings/:path*", "/sign-in", "/sign-up"],
 };
