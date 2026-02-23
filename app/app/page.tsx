@@ -12,6 +12,7 @@ type WorkspacePageProps = {
 export default async function WorkspacePage({ searchParams }: WorkspacePageProps) {
   const session = await requireSession();
   const roles = await getUserRoles(session.user);
+  const isAdmin = roles.includes("admin");
   const params = searchParams ? await searchParams : undefined;
   const requestedView = getSingleParam(params?.view);
   const parsedView = parseWorkspaceView(requestedView);
@@ -31,7 +32,11 @@ export default async function WorkspacePage({ searchParams }: WorkspacePageProps
         </header>
       ) : null}
 
-      {activeView === "member" ? <ExpenseManager userEmail={session.user.email} userName={session.user.name} /> : <FinanceWorkspace />}
+      {activeView === "member" ? (
+        <ExpenseManager userEmail={session.user.email} userName={session.user.name} isAdmin={isAdmin} />
+      ) : (
+        <FinanceWorkspace />
+      )}
     </main>
   );
 }

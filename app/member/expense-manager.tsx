@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   BarChart3,
@@ -26,6 +27,7 @@ import {
 import { CardListSkeleton } from "@/app/ui/list-skeletons";
 import { signOutAction } from "@/app/actions";
 import { calculateMemberDashboardStats, getExpenseStatusMeta } from "@/src/lib/member-dashboard";
+import { SETTINGS_PATH } from "@/src/lib/routes";
 
 type PaymentMethod = "work_card" | "personal_card";
 type ExpenseStatus = "draft" | "submitted" | "received";
@@ -70,6 +72,7 @@ type FormState = {
 type ExpenseManagerProps = {
   userEmail: string;
   userName?: string | null;
+  isAdmin: boolean;
 };
 
 type MemberDashboardStats = {
@@ -102,7 +105,7 @@ const MOBILE_SECTIONS: { key: MemberShellSection; label: string; icon: typeof Ho
   { key: "profile", label: "Profile", icon: User },
 ];
 
-export function ExpenseManager({ userEmail, userName }: ExpenseManagerProps) {
+export function ExpenseManager({ userEmail, userName, isAdmin }: ExpenseManagerProps) {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -357,7 +360,7 @@ export function ExpenseManager({ userEmail, userName }: ExpenseManagerProps) {
         />
 
         <div className="min-w-0 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 lg:p-6">
-          <MemberDashboardHeader userName={currentUserName} userEmail={userEmail} />
+          <MemberDashboardHeader userName={currentUserName} userEmail={userEmail} isAdmin={isAdmin} />
 
           {activeSection === "reports" ? (
             <>
@@ -452,9 +455,10 @@ export function ExpenseManager({ userEmail, userName }: ExpenseManagerProps) {
 type MemberDashboardHeaderProps = {
   userName: string;
   userEmail: string;
+  isAdmin: boolean;
 };
 
-function MemberDashboardHeader({ userName, userEmail }: MemberDashboardHeaderProps) {
+function MemberDashboardHeader({ userName, userEmail, isAdmin }: MemberDashboardHeaderProps) {
   return (
     <header className="mb-6 flex items-center justify-between gap-3">
       <div className="min-w-0">
@@ -462,13 +466,15 @@ function MemberDashboardHeader({ userName, userEmail }: MemberDashboardHeaderPro
         <h2 className="truncate text-xl font-bold text-slate-900 sm:text-2xl">{userName}</h2>
         <p className="truncate text-xs text-slate-500 sm:text-sm">{userEmail}</p>
       </div>
-      <button
-        type="button"
-        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-100"
-        aria-label="Workspace settings"
-      >
-        <Settings aria-hidden className="h-5 w-5" />
-      </button>
+      {isAdmin ? (
+        <Link
+          href={SETTINGS_PATH}
+          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-100"
+          aria-label="Workspace settings"
+        >
+          <Settings aria-hidden className="h-5 w-5" />
+        </Link>
+      ) : null}
     </header>
   );
 }
