@@ -17,6 +17,7 @@ Milestone 2 baseline for V1 using Next.js (App Router), TypeScript, pnpm, Better
    ```
 3. Set at least:
    - `DATABASE_URL`
+   - `BETTER_AUTH_URL`
    - `BETTER_AUTH_SECRET`
    - `AUTH_SIGNUP_MODE`
    - `S3_ENDPOINT`
@@ -93,6 +94,8 @@ Status mapping:
 Copy `.env.example` to `.env` and fill values.
 
 Auth mode defaults to invite-only (`AUTH_SIGNUP_MODE=invite_only`).
+
+Docker image build reads URL settings from `.env` via compose build args (`DATABASE_URL`, `BETTER_AUTH_URL`, `S3_ENDPOINT`) instead of hardcoded URLs.
 
 ## Protected UI Routes
 - Workspace: `/app`

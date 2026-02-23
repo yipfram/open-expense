@@ -2,10 +2,13 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getPasswordPolicyLabel, PASSWORD_MIN_LENGTH, PASSWORD_MAX_LENGTH } from "@/src/lib/password-policy";
 
 type SignUpState = {
   error?: string;
   requestId?: string;
+  code?: string;
+  upstreamStatus?: number;
 };
 
 type SignUpFormProps = {
@@ -42,6 +45,8 @@ export function SignUpForm({ requireInvite }: SignUpFormProps) {
         setState({
           error: data.error ?? "Unable to create account right now.",
           requestId: data.requestId,
+          code: data.code,
+          upstreamStatus: data.upstreamStatus,
         });
         return;
       }
@@ -90,8 +95,11 @@ export function SignUpForm({ requireInvite }: SignUpFormProps) {
         name="password"
         type="password"
         autoComplete="new-password"
+        minLength={PASSWORD_MIN_LENGTH}
+        maxLength={PASSWORD_MAX_LENGTH}
         required
       />
+      <p className="text-xs text-slate-600">{getPasswordPolicyLabel()}</p>
 
       {requireInvite ? (
         <>
@@ -111,6 +119,10 @@ export function SignUpForm({ requireInvite }: SignUpFormProps) {
       {state.error ? (
         <p className="text-sm text-rose-700">
           {state.error}
+          {state.code ? <span className="block break-all text-xs text-rose-600">Code: {state.code}</span> : null}
+          {typeof state.upstreamStatus === "number" ? (
+            <span className="block text-xs text-rose-600">Auth status: {state.upstreamStatus}</span>
+          ) : null}
           {state.requestId ? <span className="block break-all text-xs text-rose-600">Ref: {state.requestId}</span> : null}
         </p>
       ) : null}

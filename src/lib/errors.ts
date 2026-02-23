@@ -1,3 +1,4 @@
+import { getPasswordPolicyLabel } from "@/src/lib/password-policy";
 export type UiErrorCode = "validation" | "authentication" | "conflict" | "database" | "unknown";
 
 export type UiError = {
@@ -94,13 +95,28 @@ function normalizeError(error: unknown): NormalizedError {
 
 function classifyError(error: NormalizedError): UiErrorCode {
   const source = `${error.code ?? ""} ${error.message} ${error.details.join(" ")}`.toLowerCase();
+  const postgresCode = (error.code ?? "").toUpperCase();
 
   if (error.status === 400 || error.status === 422 || source.includes("invalid_")) {
     return "validation";
   }
 
+  if (source.includes("password is too short") || source.includes("password is too long")) {
+    return "validation";
+  }
+
   if (error.code === "23505" || source.includes("unique constraint")) {
     return "conflict";
+  }
+
+  if (
+    postgresCode === "28P01" ||
+    postgresCode.startsWith("08") ||
+    postgresCode === "57P01" ||
+    postgresCode === "57P02" ||
+    postgresCode === "57P03"
+  ) {
+    return "database";
   }
 
   if (
@@ -151,11 +167,15 @@ function getSpecificUiMessage(error: NormalizedError): string | undefined {
   }
 
   if (source.includes("password_too_short")) {
-    return "Password is too short.";
+    return getPasswordPolicyLabel();
   }
 
   if (source.includes("password_too_long")) {
-    return "Password is too long.";
+    return getPasswordPolicyLabel();
+  }
+
+  if (source.includes("password is too short") || source.includes("password is too long")) {
+    return getPasswordPolicyLabel();
   }
 
   if (source.includes("invalid_email")) {

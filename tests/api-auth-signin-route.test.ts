@@ -22,6 +22,8 @@ vi.mock("@/src/lib/errors", () => ({
 describe("POST /api/auth/sign-in", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    toUiError.mockReturnValue({ code: "validation", message: "Mapped sign-in validation error", requestId: "req_signin_1" });
+    uiErrorToStatusCode.mockReturnValue(400);
   });
 
   it("returns 400 on invalid payload", async () => {
@@ -64,5 +66,36 @@ describe("POST /api/auth/sign-in", () => {
     );
 
     expect(response.status).toBe(503);
+  });
+
+  it("returns mapped response with debug metadata when auth provider responds non-ok", async () => {
+    signInEmail.mockResolvedValueOnce(
+      new Response(JSON.stringify({ code: "INVALID_PASSWORD", message: "Invalid email or password." }), {
+        status: 422,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    const { POST } = await import("../app/api/auth/sign-in/route");
+    const response = await POST(
+      new Request("http://localhost/api/auth/sign-in", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email: "x@example.com", password: "secret" }),
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    const body = (await response.json()) as {
+      error: string;
+      requestId?: string;
+      code?: string;
+      upstreamStatus?: number;
+    };
+    expect(body.error).toBe("Mapped sign-in validation error");
+    expect(body.requestId).toBe("req_signin_1");
+    expect(body.code).toBe("INVALID_PASSWORD");
+    expect(body.upstreamStatus).toBe(422);
+    expect(logServerError).toHaveBeenCalledTimes(1);
   });
 });

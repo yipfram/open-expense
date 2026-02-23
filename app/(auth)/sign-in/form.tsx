@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 type SignInState = {
   error?: string;
   requestId?: string;
+  code?: string;
+  upstreamStatus?: number;
 };
 
 export function SignInForm() {
@@ -36,6 +38,8 @@ export function SignInForm() {
         setState({
           error: data.error ?? "Unable to sign in right now.",
           requestId: data.requestId,
+          code: data.code,
+          upstreamStatus: data.upstreamStatus,
         });
         return;
       }
@@ -78,6 +82,10 @@ export function SignInForm() {
       {state.error ? (
         <p className="text-sm text-rose-700">
           {state.error}
+          {state.code ? <span className="block break-all text-xs text-rose-600">Code: {state.code}</span> : null}
+          {typeof state.upstreamStatus === "number" ? (
+            <span className="block text-xs text-rose-600">Auth status: {state.upstreamStatus}</span>
+          ) : null}
           {state.requestId ? <span className="block break-all text-xs text-rose-600">Ref: {state.requestId}</span> : null}
         </p>
       ) : null}

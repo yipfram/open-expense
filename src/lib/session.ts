@@ -5,8 +5,12 @@ import { auth } from "@/src/lib/auth";
 import { logServerError, toUiError } from "@/src/lib/errors";
 import { type AppRole, getUserRoles } from "@/src/lib/roles";
 
+type GetSessionSafeOptions = {
+  redirectOnError?: boolean;
+};
+
 export async function requireSession() {
-  const session = await getSessionSafe();
+  const session = await getSessionSafe({ redirectOnError: true });
 
   if (!session) {
     redirect("/sign-in");
@@ -27,7 +31,7 @@ export async function requireRole(allowedRoles: AppRole[]) {
   return session;
 }
 
-export async function getSessionSafe() {
+export async function getSessionSafe(options: GetSessionSafeOptions = {}) {
   try {
     return await auth.api.getSession({
       headers: await headers(),
@@ -35,6 +39,11 @@ export async function getSessionSafe() {
   } catch (error) {
     const uiError = toUiError(error, "Session unavailable.");
     logServerError("session retrieval failed", error, uiError.requestId);
-    redirect(`/service-unavailable?ref=${uiError.requestId}`);
+
+    if (options.redirectOnError) {
+      redirect(`/service-unavailable?ref=${uiError.requestId}`);
+    }
+
+    return null;
   }
 }

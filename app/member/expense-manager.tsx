@@ -11,6 +11,7 @@ import {
   FileText,
   Filter,
   Home,
+  LogOut,
   PanelLeftClose,
   PanelLeftOpen,
   Plane,
@@ -23,6 +24,7 @@ import {
 } from "lucide-react";
 
 import { CardListSkeleton } from "@/app/ui/list-skeletons";
+import { signOutAction } from "@/app/actions";
 import { calculateMemberDashboardStats, getExpenseStatusMeta } from "@/src/lib/member-dashboard";
 
 type PaymentMethod = "work_card" | "personal_card";
@@ -75,12 +77,22 @@ type MemberDashboardStats = {
   submittedTotalMinor: number;
 };
 
+type MemberExpenseFilters = {
+  status: ExpenseStatus | "all";
+  categoryQuery: string;
+};
+
 const INITIAL_FORM: FormState = {
   amount: "",
   expenseDate: new Date().toISOString().slice(0, 10),
   category: "",
   paymentMethod: "personal_card",
   comment: "",
+};
+
+const INITIAL_FILTERS: MemberExpenseFilters = {
+  status: "all",
+  categoryQuery: "",
 };
 
 const MOBILE_SECTIONS: { key: MemberShellSection; label: string; icon: typeof Home }[] = [
@@ -101,17 +113,40 @@ export function ExpenseManager({ userEmail, userName }: ExpenseManagerProps) {
   const [error, setError] = useState("");
   const [activeSection, setActiveSection] = useState<MemberShellSection>("home");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [filters, setFilters] = useState<MemberExpenseFilters>(INITIAL_FILTERS);
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
+  const [toolbarFeedback, setToolbarFeedback] = useState("");
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const amountInputRef = useRef<HTMLInputElement | null>(null);
+  const hasActiveFilters = filters.status !== "all" || filters.categoryQuery.trim().length > 0;
+
+  const filteredExpenses = useMemo(() => {
+    const categoryFilter = filters.categoryQuery.trim().toLowerCase();
+
+    return expenses.filter((expense) => {
+      if (filters.status !== "all" && expense.status !== filters.status) {
+        return false;
+      }
+
+      if (categoryFilter && !expense.category.toLowerCase().includes(categoryFilter)) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [expenses, filters]);
 
   const selectedExpense = useMemo(
     () => expenses.find((expense) => expense.id === selectedExpenseId) ?? null,
     [expenses, selectedExpenseId],
   );
 
-  const dashboardStats: MemberDashboardStats = useMemo(() => calculateMemberDashboardStats(expenses), [expenses]);
-  const currencyCode = expenses[0]?.currencyCode ?? "EUR";
+  const dashboardStats: MemberDashboardStats = useMemo(
+    () => calculateMemberDashboardStats(filteredExpenses),
+    [filteredExpenses],
+  );
+  const currencyCode = filteredExpenses[0]?.currencyCode ?? expenses[0]?.currencyCode ?? "EUR";
   const currentUserName = userName?.trim() || userEmail;
 
   useEffect(() => {
@@ -289,6 +324,21 @@ export function ExpenseManager({ userEmail, userName }: ExpenseManagerProps) {
     }
   }
 
+  function handleExport() {
+    if (filteredExpenses.length === 0) {
+      setToolbarFeedback("No expenses to export for the current filters.");
+      return;
+    }
+
+    exportExpensesCsv(filteredExpenses);
+    setToolbarFeedback(`Exported ${filteredExpenses.length} expense(s).`);
+  }
+
+  function clearFilters() {
+    setFilters(INITIAL_FILTERS);
+    setToolbarFeedback("");
+  }
+
   return (
     <section className="relative min-w-0 pb-24 md:pb-0">
       <div
@@ -309,13 +359,29 @@ export function ExpenseManager({ userEmail, userName }: ExpenseManagerProps) {
         <div className="min-w-0 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 lg:p-6">
           <MemberDashboardHeader userName={currentUserName} userEmail={userEmail} />
 
-          <MemberSummaryCard
-            submittedCount={dashboardStats.submittedCount}
-            submittedTotalMinor={dashboardStats.submittedTotalMinor}
-            currencyCode={currencyCode}
-          />
+          {activeSection === "reports" ? (
+            <>
+              <MemberActionBar
+                onToggleFilters={() => setIsFilterPanelOpen((value) => !value)}
+                onExport={handleExport}
+                hasActiveFilters={hasActiveFilters}
+                isFilterPanelOpen={isFilterPanelOpen}
+                isExportDisabled={filteredExpenses.length === 0}
+              />
 
-          <MemberActionBar onRefresh={() => void loadExpenses()} />
+              {toolbarFeedback ? <p className="mb-4 text-sm text-slate-700">{toolbarFeedback}</p> : null}
+
+              {isFilterPanelOpen ? (
+                <MemberFilterPanel
+                  filters={filters}
+                  onFiltersChange={setFilters}
+                  onClearFilters={clearFilters}
+                  shownCount={filteredExpenses.length}
+                  totalCount={expenses.length}
+                />
+              ) : null}
+            </>
+          ) : null}
 
           {activeSection === "home" ? (
             <div className="grid min-w-0 gap-6 xl:grid-cols-[1.15fr_1fr]">
@@ -351,7 +417,16 @@ export function ExpenseManager({ userEmail, userName }: ExpenseManagerProps) {
             </div>
           ) : null}
 
-          {activeSection === "reports" ? <ReportsPanel expenses={expenses} currencyCode={currencyCode} /> : null}
+          {activeSection === "reports" ? (
+            <>
+              <MemberSummaryCard
+                submittedCount={dashboardStats.submittedCount}
+                submittedTotalMinor={dashboardStats.submittedTotalMinor}
+                currencyCode={currencyCode}
+              />
+              <ReportsPanel expenses={filteredExpenses} currencyCode={currencyCode} />
+            </>
+          ) : null}
 
           {activeSection === "history" ? (
             <HistoryPanel
@@ -424,29 +499,108 @@ function MemberSummaryCard({ submittedCount, submittedTotalMinor, currencyCode }
 }
 
 type MemberActionBarProps = {
-  onRefresh: () => void;
+  onToggleFilters: () => void;
+  onExport: () => void;
+  hasActiveFilters: boolean;
+  isFilterPanelOpen: boolean;
+  isExportDisabled: boolean;
 };
 
-function MemberActionBar({ onRefresh }: MemberActionBarProps) {
+function MemberActionBar({
+  onToggleFilters,
+  onExport,
+  hasActiveFilters,
+  isFilterPanelOpen,
+  isExportDisabled,
+}: MemberActionBarProps) {
   return (
     <div className="mb-6 grid grid-cols-2 gap-3">
       <button
         type="button"
-        onClick={onRefresh}
-        className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-100 px-3 py-2.5 text-sm font-medium text-slate-900 transition hover:bg-slate-200"
+        onClick={onToggleFilters}
+        className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+          isFilterPanelOpen || hasActiveFilters
+            ? "bg-slate-900 text-white hover:bg-slate-800"
+            : "bg-slate-100 text-slate-900 hover:bg-slate-200"
+        }`}
       >
         <Filter aria-hidden className="h-4 w-4" />
-        Filter
+        {hasActiveFilters ? "Filter (active)" : "Filter"}
       </button>
       <button
         type="button"
-        onClick={onRefresh}
-        className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-100 px-3 py-2.5 text-sm font-medium text-slate-900 transition hover:bg-slate-200"
+        onClick={onExport}
+        disabled={isExportDisabled}
+        className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-100 px-3 py-2.5 text-sm font-medium text-slate-900 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
       >
         <Download aria-hidden className="h-4 w-4" />
         Export
       </button>
     </div>
+  );
+}
+
+type MemberFilterPanelProps = {
+  filters: MemberExpenseFilters;
+  onFiltersChange: React.Dispatch<React.SetStateAction<MemberExpenseFilters>>;
+  onClearFilters: () => void;
+  shownCount: number;
+  totalCount: number;
+};
+
+function MemberFilterPanel({ filters, onFiltersChange, onClearFilters, shownCount, totalCount }: MemberFilterPanelProps) {
+  return (
+    <section className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="grid gap-1 text-sm">
+          <span className="font-medium text-slate-700">Status</span>
+          <select
+            value={filters.status}
+            onChange={(event) =>
+              onFiltersChange((previous) => ({
+                ...previous,
+                status: event.target.value as MemberExpenseFilters["status"],
+              }))
+            }
+            className="rounded-md border border-slate-300 bg-white px-3 py-2 outline-none ring-slate-300 focus:ring-2"
+          >
+            <option value="all">All statuses</option>
+            <option value="draft">Draft</option>
+            <option value="submitted">Submitted</option>
+            <option value="received">Received</option>
+          </select>
+        </label>
+
+        <label className="grid gap-1 text-sm">
+          <span className="font-medium text-slate-700">Category</span>
+          <input
+            type="text"
+            value={filters.categoryQuery}
+            onChange={(event) =>
+              onFiltersChange((previous) => ({
+                ...previous,
+                categoryQuery: event.target.value,
+              }))
+            }
+            placeholder="e.g. transport"
+            className="rounded-md border border-slate-300 bg-white px-3 py-2 outline-none ring-slate-300 focus:ring-2"
+          />
+        </label>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs text-slate-600">
+          Showing {shownCount} of {totalCount} expense(s)
+        </p>
+        <button
+          type="button"
+          onClick={onClearFilters}
+          className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
+        >
+          Clear filters
+        </button>
+      </div>
+    </section>
   );
 }
 
@@ -457,7 +611,12 @@ type MemberExpensesListProps = {
   onSelectExpense: (expenseId: string) => void;
 };
 
-function MemberExpensesList({ expenses, isLoading, selectedExpenseId, onSelectExpense }: MemberExpensesListProps) {
+function MemberExpensesList({
+  expenses,
+  isLoading,
+  selectedExpenseId,
+  onSelectExpense,
+}: MemberExpensesListProps) {
   return (
     <section className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -818,6 +977,19 @@ function MemberDesktopSidebar({
         >
           {isCollapsed ? <RefreshCw aria-hidden className="h-4 w-4" /> : isLoading ? "Refreshing..." : "Refresh"}
         </button>
+        <form action={signOutAction}>
+          <button
+            type="submit"
+            className={`w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 ${
+              isCollapsed ? "inline-flex items-center justify-center" : "inline-flex items-center justify-center gap-2"
+            }`}
+            aria-label="Sign out"
+            title="Sign out"
+          >
+            <LogOut aria-hidden className="h-4 w-4" />
+            {!isCollapsed ? "Sign out" : null}
+          </button>
+        </form>
       </div>
     </aside>
   );
@@ -950,6 +1122,70 @@ function ProfilePanel({ userEmail, userName }: ProfilePanelProps) {
       <p className="mt-3 text-xs text-slate-500">Profile editing is planned for a later milestone.</p>
     </section>
   );
+}
+
+function exportExpensesCsv(expenses: Expense[]) {
+  const header = [
+    "Public ID",
+    "Expense Date",
+    "Status",
+    "Category",
+    "Payment Method",
+    "Amount",
+    "Currency",
+    "Comment",
+    "Submitted At",
+    "Updated At",
+  ];
+
+  const lines = expenses.map((expense) => [
+    expense.publicId,
+    toDateValue(expense.expenseDate),
+    expense.status,
+    expense.category,
+    expense.paymentMethod,
+    (expense.amountMinor / 100).toFixed(2),
+    expense.currencyCode,
+    expense.comment ?? "",
+    expense.submittedAt ? toDateTimeValue(expense.submittedAt) : "",
+    toDateTimeValue(expense.updatedAt),
+  ]);
+
+  const csvContent = [header, ...lines].map((line) => line.map(toCsvCell).join(",")).join("\n");
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+
+  anchor.href = url;
+  anchor.download = `expenses-${stamp}.csv`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  URL.revokeObjectURL(url);
+}
+
+function toCsvCell(value: string) {
+  const escaped = value.replace(/"/g, "\"\"");
+  return `"${escaped}"`;
+}
+
+function toDateValue(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toISOString().slice(0, 10);
+}
+
+function toDateTimeValue(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toISOString();
 }
 
 function getCategoryIcon(category: string) {
