@@ -1,10 +1,12 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const getSession = vi.fn();
 const headersMock = vi.fn();
 const getUserRoles = vi.fn();
 const listInvites = vi.fn();
 const createInvite = vi.fn();
+const canSignUp = vi.fn();
+const consumeInviteCode = vi.fn();
 const toUiError = vi.fn();
 const uiErrorToStatusCode = vi.fn();
 const logServerError = vi.fn();
@@ -28,6 +30,8 @@ vi.mock("@/src/lib/roles", () => ({
 vi.mock("@/src/lib/invites", () => ({
   listInvites,
   createInvite,
+  canSignUp,
+  consumeInviteCode,
 }));
 
 vi.mock("@/src/lib/errors", () => ({
@@ -38,8 +42,13 @@ vi.mock("@/src/lib/errors", () => ({
 
 describe("/api/admin/invites", () => {
   beforeEach(() => {
+    vi.resetModules();
     vi.clearAllMocks();
     headersMock.mockResolvedValue(new Headers());
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
   });
 
   it("GET returns 401 when unauthenticated", async () => {

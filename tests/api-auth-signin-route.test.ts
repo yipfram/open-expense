@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const signInEmail = vi.fn();
 const logServerError = vi.fn();
@@ -21,9 +21,14 @@ vi.mock("@/src/lib/errors", () => ({
 
 describe("POST /api/auth/sign-in", () => {
   beforeEach(() => {
+    vi.resetModules();
     vi.clearAllMocks();
     toUiError.mockReturnValue({ code: "validation", message: "Mapped sign-in validation error", requestId: "req_signin_1" });
     uiErrorToStatusCode.mockReturnValue(400);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
   });
 
   it("returns 400 on invalid payload", async () => {

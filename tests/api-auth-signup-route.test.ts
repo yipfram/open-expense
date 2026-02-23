@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const signUpEmail = vi.fn();
 const canSignUp = vi.fn();
@@ -28,9 +28,14 @@ vi.mock("@/src/lib/errors", () => ({
 
 describe("POST /api/auth/sign-up", () => {
   beforeEach(() => {
+    vi.resetModules();
     vi.clearAllMocks();
     toUiError.mockReturnValue({ code: "validation", message: "Mapped validation error", requestId: "req_signup_1" });
     uiErrorToStatusCode.mockReturnValue(400);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
   });
 
   it("returns 400 on missing fields", async () => {

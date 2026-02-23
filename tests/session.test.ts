@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const getSession = vi.fn();
 const redirect = vi.fn((target: string) => {
@@ -35,6 +35,20 @@ vi.mock("next/headers", () => ({
 
 describe("session helpers", () => {
   beforeEach(() => {
+    vi.resetModules();
+    vi.clearAllMocks();
+    redirect.mockImplementation((target: string) => {
+      throw new Error(`NEXT_REDIRECT:${target}`);
+    });
+    headers.mockImplementation(async () => new Headers());
+    toUiError.mockReturnValue({
+      code: "database",
+      message: "Service is temporarily unavailable. Please retry in a moment.",
+      requestId: "req_session_1",
+    });
+  });
+
+  afterEach(() => {
     vi.clearAllMocks();
   });
 

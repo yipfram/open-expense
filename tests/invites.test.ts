@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const selectLimit = vi.fn();
 const updateReturning = vi.fn();
@@ -26,6 +26,11 @@ vi.mock("@/src/db/client", () => ({
 
 describe("invites", () => {
   beforeEach(() => {
+    vi.resetModules();
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
     vi.clearAllMocks();
   });
 
