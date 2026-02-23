@@ -1126,6 +1126,16 @@ function ProfilePanel({ userEmail, userName }: ProfilePanelProps) {
       <p className="mt-2 text-sm text-slate-700">Name: {userName}</p>
       <p className="mt-1 break-all text-sm text-slate-700">Email: {userEmail}</p>
       <p className="mt-3 text-xs text-slate-500">Profile editing is planned for a later milestone.</p>
+      <form action={signOutAction} className="mt-4 md:hidden">
+        <button
+          type="submit"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+          aria-label="Sign out"
+        >
+          <LogOut aria-hidden className="h-4 w-4" />
+          Sign out
+        </button>
+      </form>
     </section>
   );
 }
