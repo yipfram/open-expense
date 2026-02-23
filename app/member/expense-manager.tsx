@@ -1073,7 +1073,10 @@ function HistoryPanel({ expenses, isLoading, onSelectExpense }: HistoryPanelProp
                 onClick={() => onSelectExpense(expense.id)}
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-left text-sm text-slate-800 hover:bg-slate-50"
               >
-                {expense.publicId} - {(expense.amountMinor / 100).toFixed(2)} {expense.currencyCode}
+                <p className="font-medium text-slate-900">{expense.category}</p>
+                <p className="mt-1 text-xs text-slate-600">
+                  {new Date(expense.expenseDate).toLocaleDateString()} - {(expense.amountMinor / 100).toFixed(2)} {expense.currencyCode}
+                </p>
               </button>
             </li>
           ))}
