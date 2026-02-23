@@ -921,11 +921,11 @@ function MemberDesktopSidebar({
   onRefresh,
   onNewDraft,
   isLoading,
-}: MemberDesktopSidebarProps) {
+}: Readonly<MemberDesktopSidebarProps>) {
   return (
-    <aside className="hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm md:block">
+    <aside className="hidden h-fit self-start rounded-3xl border border-slate-200 bg-white px-4 py-6 shadow-sm md:block">
       <div className={`mb-3 flex items-center ${isCollapsed ? "justify-center" : "justify-between"}`}>
-        {!isCollapsed ? <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Member menu</p> : null}
+        {isCollapsed ? null : <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Member menu</p>}
         <button
           type="button"
           onClick={onToggleCollapse}
