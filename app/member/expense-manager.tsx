@@ -417,7 +417,15 @@ export function ExpenseManager({ userEmail, userName, isAdmin }: ExpenseManagerP
                 expenses={expenses}
                 isLoading={isLoading}
                 selectedExpenseId={selectedExpenseId}
-                onSelectExpense={(expenseId) => setSelectedExpenseId(expenseId)}
+                onSelectExpense={(expenseId) => {
+                  const expense = expenses.find((item) => item.id === expenseId);
+                  if (expense?.status === "submitted") {
+                    router.push(`/app/expense/${expenseId}`);
+                    return;
+                  }
+
+                  setSelectedExpenseId(expenseId);
+                }}
               />
             </div>
           ) : null}
