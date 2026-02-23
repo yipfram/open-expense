@@ -48,6 +48,8 @@ type ExpenseDetailViewer = {
 
 export type ExpenseReceiptRecord = {
   expenseId: string;
+  publicId: string;
+  expenseDate: string;
   storageKey: string;
   originalFilename: string;
   mimeType: string;
@@ -189,6 +191,8 @@ export async function getExpenseReceiptForViewer({
   const rows = await db
     .select({
       id: expenses.id,
+      publicId: expenses.publicId,
+      expenseDate: expenses.expenseDate,
       memberId: expenses.memberId,
       departmentId: expenses.departmentId,
       projectId: expenses.projectId,
@@ -224,6 +228,8 @@ export async function getExpenseReceiptForViewer({
 
   return {
     expenseId: row.id,
+    publicId: row.publicId,
+    expenseDate: row.expenseDate,
     storageKey: row.attachmentStorageKey,
     originalFilename: row.attachmentOriginalFilename ?? "receipt",
     mimeType: row.attachmentMimeType ?? "application/octet-stream",

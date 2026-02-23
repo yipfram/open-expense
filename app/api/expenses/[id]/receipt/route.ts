@@ -12,7 +12,7 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-export async function GET(_request: Request, context: RouteContext) {
+export async function GET(request: Request, context: RouteContext) {
   try {
     const session = await auth.api.getSession({ headers: await headers() });
     if (!session?.user?.id) {
@@ -28,12 +28,18 @@ export async function GET(_request: Request, context: RouteContext) {
     });
 
     const object = await getReceiptFromStorage(receipt.storageKey);
+    const url = new URL(request.url);
+    const shouldDownload = url.searchParams.get("download") === "1";
+    const disposition = shouldDownload ? "attachment" : "inline";
+    const extension = getFileExtension(receipt.originalFilename);
+    const datePart = receipt.expenseDate;
+    const downloadFilename = `${receipt.publicId}-${datePart}${extension}`;
 
     return new NextResponse(object.body, {
       status: 200,
       headers: {
         "content-type": object.contentType,
-        "content-disposition": `inline; filename=\"${receipt.originalFilename}\"`,
+        "content-disposition": `${disposition}; filename=\"${downloadFilename}\"`,
         "cache-control": "private, no-store",
         ...(typeof object.contentLength === "number" ? { "content-length": String(object.contentLength) } : {}),
       },
@@ -46,4 +52,14 @@ export async function GET(_request: Request, context: RouteContext) {
     const uiError = toUiError(error, "Unable to load receipt.");
     return NextResponse.json({ error: uiError.message, requestId: uiError.requestId }, { status: 503 });
   }
+}
+
+function getFileExtension(filename: string) {
+  const lastDot = filename.lastIndexOf(".");
+  if (lastDot <= 0 || lastDot === filename.length - 1) {
+    return "";
+  }
+
+  const extension = filename.slice(lastDot);
+  return /^[.][a-zA-Z0-9]{1,10}$/.test(extension) ? extension : "";
 }

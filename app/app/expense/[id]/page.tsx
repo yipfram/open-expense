@@ -96,6 +96,14 @@ export default async function ExpenseDetailPage({ params }: ExpenseDetailPagePro
           <p className="text-xs text-slate-600">
             {expense.receipt.mimeType} - {Math.ceil(expense.receipt.sizeBytes / 1024)} KB
           </p>
+          <p className="mt-3">
+            <a
+              className="inline-flex rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50"
+              href={`/api/expenses/${expense.id}/receipt?download=1`}
+            >
+              Download receipt
+            </a>
+          </p>
         </section>
       ) : null}
 
