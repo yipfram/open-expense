@@ -1043,7 +1043,7 @@ function MemberFabAddButton({ onClick }: MemberFabAddButtonProps) {
       type="button"
       onClick={onClick}
       aria-label="Create new draft"
-      className="fixed bottom-20 right-4 z-40 inline-flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-white shadow-xl shadow-slate-900/30 transition hover:scale-105 active:scale-95 md:hidden"
+      className="fixed bottom-20 left-1/2 z-40 inline-flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full bg-slate-900 text-white shadow-xl shadow-slate-900/30 transition hover:scale-105 active:scale-95 md:hidden"
     >
       <Plus aria-hidden className="h-6 w-6" />
     </button>
