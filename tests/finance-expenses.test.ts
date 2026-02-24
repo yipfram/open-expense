@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { ExpenseError } from "@/src/lib/expense-errors";
-import { parseFinanceExpenseFilters, resolveFinanceStatusTransition } from "@/src/lib/finance-expenses";
+import { parseFinanceExpenseFilters, resolveFinanceValidationTransition } from "@/src/lib/finance-expenses";
 
 describe("parseFinanceExpenseFilters", () => {
   it("uses submitted as default status", () => {
@@ -42,9 +42,9 @@ describe("parseFinanceExpenseFilters", () => {
   });
 });
 
-describe("resolveFinanceStatusTransition", () => {
+describe("resolveFinanceValidationTransition", () => {
   it("allows submitted to received transition", () => {
-    const transition = resolveFinanceStatusTransition("submitted", "received");
+    const transition = resolveFinanceValidationTransition("submitted");
     expect(transition).toEqual({
       status: "received",
       setReceivedAt: true,
@@ -52,7 +52,7 @@ describe("resolveFinanceStatusTransition", () => {
   });
 
   it("is idempotent for received to received", () => {
-    const transition = resolveFinanceStatusTransition("received", "received");
+    const transition = resolveFinanceValidationTransition("received");
     expect(transition).toEqual({
       status: "received",
       setReceivedAt: false,
@@ -60,9 +60,9 @@ describe("resolveFinanceStatusTransition", () => {
   });
 
   it("rejects transition from draft", () => {
-    expect(() => resolveFinanceStatusTransition("draft", "received")).toThrow(ExpenseError);
+    expect(() => resolveFinanceValidationTransition("draft")).toThrow(ExpenseError);
     try {
-      resolveFinanceStatusTransition("draft", "received");
+      resolveFinanceValidationTransition("draft");
     } catch (error) {
       expect(error).toBeInstanceOf(ExpenseError);
       expect((error as ExpenseError).status).toBe(409);

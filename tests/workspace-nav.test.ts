@@ -30,7 +30,7 @@ describe("buildWorkspaceNavItems", () => {
 
     expect(items.map((item) => item.label)).toEqual(["Process", "Sign out"]);
     expect(items[0]?.active).toBe(true);
-    expect(items[0]?.href).toBe("/app?view=finance");
+    expect(items[0]?.href).toBe("/app?view=process");
   });
 
   it("returns submit/process/settings/sign out for admin access", () => {
@@ -47,6 +47,6 @@ describe("buildWorkspaceNavItems", () => {
     expect(items[0]?.active).toBe(false);
     expect(items[1]?.active).toBe(true);
     expect(items[0]?.href).toBe("/app");
-    expect(items[1]?.href).toBe("/app?view=finance");
+    expect(items[1]?.href).toBe("/app?view=process");
   });
 });

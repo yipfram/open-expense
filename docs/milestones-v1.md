@@ -1,6 +1,6 @@
 # Milestones (V1)
 
-Status snapshot (2026-02-24): Milestone 3 implemented (`/app?view=finance` inbox, finance filters, update flow, and `received` transition).
+Status snapshot (2026-02-24): Milestone 3 implemented (`/app?view=process` inbox, finance filters, update flow, and `received` transition).
 
 ## Milestone 0 - Project Bootstrap
 - Initialize Next.js (App Router) + TypeScript app structure.

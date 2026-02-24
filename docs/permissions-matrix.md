@@ -21,6 +21,7 @@ Legend:
 | Edit own draft | U | U | U | U |
 | Delete own draft | D | D | D | D |
 | Edit submitted own expense | - | - | U | U |
+| Edit received own expense | - | - | - | - |
 | Change status to submitted | U (own draft) | U (own draft) | U | U |
 | Change status to received | - | - | U | U |
 | Reassign department/project | - | - | U | U |
@@ -28,6 +29,8 @@ Legend:
 Notes:
 - Member edits/deletes are allowed only in `draft`.
 - Scoped manager access means only assigned department(s)/project(s).
+- In process workflow, finance/admin corrections are allowed only while expense is `submitted`.
+- Internal status `received` is displayed in UI as `Validated`.
 
 ## Configuration Actions
 | Action | Member | Member+Manager | Finance | Admin |
@@ -48,7 +51,8 @@ Notes:
 - Canonical protected workspace path: `/app`.
 - Workspace views:
   - `view=member`: member, manager, finance, admin
-  - `view=finance`: finance, admin
+  - `view=process`: finance, admin
+  - `view=finance`: finance, admin (legacy compatibility alias)
 - Expense detail route: `/app/expense/[id]`
   - owner can read
   - manager can read if scope matches department/project assignment
@@ -57,4 +61,4 @@ Notes:
 - Legacy role-scoped page routes (`/member`, `/finance`, `/admin`) are not used.
 - UI labels are task-based:
   - `Submit` maps to `view=member`
-  - `Process` maps to `view=finance`
+  - `Process` maps to `view=process`

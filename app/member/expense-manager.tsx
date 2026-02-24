@@ -25,14 +25,15 @@ import {
   User,
 } from "lucide-react";
 
+import { FinanceInbox } from "@/app/finance/finance-inbox";
 import { CardListSkeleton } from "@/app/ui/list-skeletons";
 import { signOutAction } from "@/app/actions";
 import { calculateMemberDashboardStats, getExpenseStatusMeta } from "@/src/lib/member-dashboard";
-import { SETTINGS_PATH } from "@/src/lib/routes";
+import { SETTINGS_PATH, WORKSPACE_PATH } from "@/src/lib/routes";
 
 type PaymentMethod = "work_card" | "personal_card";
 type ExpenseStatus = "draft" | "submitted" | "received";
-type MemberShellSection = "home" | "reports" | "history" | "profile";
+type MemberShellSection = "home" | "reports" | "history" | "profile" | "process";
 
 type Expense = {
   id: string;
@@ -74,6 +75,8 @@ type ExpenseManagerProps = {
   userEmail: string;
   userName?: string | null;
   isAdmin: boolean;
+  canAccessFinanceView: boolean;
+  initialSection?: MemberShellSection;
 };
 
 type MemberDashboardStats = {
@@ -106,7 +109,13 @@ const MOBILE_SECTIONS: { key: MemberShellSection; label: string; icon: typeof Ho
   { key: "profile", label: "Profile", icon: User },
 ];
 
-export function ExpenseManager({ userEmail, userName, isAdmin }: ExpenseManagerProps) {
+export function ExpenseManager({
+  userEmail,
+  userName,
+  isAdmin,
+  canAccessFinanceView,
+  initialSection = "home",
+}: ExpenseManagerProps) {
   const router = useRouter();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -116,7 +125,7 @@ export function ExpenseManager({ userEmail, userName, isAdmin }: ExpenseManagerP
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [feedback, setFeedback] = useState("");
   const [error, setError] = useState("");
-  const [activeSection, setActiveSection] = useState<MemberShellSection>("home");
+  const [activeSection, setActiveSection] = useState<MemberShellSection>(initialSection);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [filters, setFilters] = useState<MemberExpenseFilters>(INITIAL_FILTERS);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
@@ -154,9 +163,18 @@ export function ExpenseManager({ userEmail, userName, isAdmin }: ExpenseManagerP
   const currencyCode = filteredExpenses[0]?.currencyCode ?? expenses[0]?.currencyCode ?? "EUR";
   const currentUserName = userName?.trim() || userEmail;
 
+  function setSection(section: MemberShellSection) {
+    setActiveSection(section);
+    router.replace(section === "process" ? `${WORKSPACE_PATH}?view=process` : WORKSPACE_PATH);
+  }
+
   useEffect(() => {
     void loadExpenses();
   }, []);
+
+  useEffect(() => {
+    setActiveSection(initialSection);
+  }, [initialSection]);
 
   useEffect(() => {
     if (!selectedExpense) {
@@ -203,7 +221,7 @@ export function ExpenseManager({ userEmail, userName, isAdmin }: ExpenseManagerP
   }
 
   function openNewDraft() {
-    setActiveSection("home");
+    setSection("home");
     resetForm();
     requestAnimationFrame(() => amountInputRef.current?.focus());
   }
@@ -354,15 +372,19 @@ export function ExpenseManager({ userEmail, userName, isAdmin }: ExpenseManagerP
         <MemberDesktopSidebar
           activeSection={activeSection}
           isCollapsed={isSidebarCollapsed}
-          onSelectSection={setActiveSection}
+          onSelectSection={setSection}
           onToggleCollapse={() => setIsSidebarCollapsed((value) => !value)}
           onRefresh={() => void loadExpenses()}
           onNewDraft={openNewDraft}
           isLoading={isLoading}
+          canAccessFinanceView={canAccessFinanceView}
+          isAdmin={isAdmin}
         />
 
         <div className="min-w-0 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 lg:p-6">
           <MemberDashboardHeader userName={currentUserName} userEmail={userEmail} isAdmin={isAdmin} />
+
+          {activeSection === "process" ? <FinanceInbox userEmail={userEmail} /> : null}
 
           {activeSection === "reports" ? (
             <>
@@ -456,7 +478,7 @@ export function ExpenseManager({ userEmail, userName, isAdmin }: ExpenseManagerP
       </div>
 
       <MemberFabAddButton onClick={openNewDraft} />
-      <MemberMobileBottomNav activeSection={activeSection} onSelectSection={setActiveSection} />
+      <MemberMobileBottomNav activeSection={activeSection} onSelectSection={setSection} />
     </section>
   );
 }
@@ -920,6 +942,8 @@ type MemberDesktopSidebarProps = {
   onRefresh: () => void;
   onNewDraft: () => void;
   isLoading: boolean;
+  canAccessFinanceView: boolean;
+  isAdmin: boolean;
 };
 
 function MemberDesktopSidebar({
@@ -930,6 +954,8 @@ function MemberDesktopSidebar({
   onRefresh,
   onNewDraft,
   isLoading,
+  canAccessFinanceView,
+  isAdmin,
 }: Readonly<MemberDesktopSidebarProps>) {
   return (
     <aside className="hidden h-fit self-start rounded-3xl border border-slate-200 bg-white px-4 py-6 shadow-sm md:block">
@@ -965,6 +991,35 @@ function MemberDesktopSidebar({
             </button>
           );
         })}
+
+        {canAccessFinanceView ? (
+          <button
+            type="button"
+            onClick={() => onSelectSection("process")}
+            className={`inline-flex items-center rounded-xl px-3 py-2 text-sm font-medium transition ${
+              isCollapsed ? "justify-center" : "gap-2"
+            } ${activeSection === "process" ? "bg-slate-900 text-white" : "text-slate-700 hover:bg-slate-100"}`}
+            aria-label="Process expenses"
+            title="Process expenses"
+          >
+            <Briefcase aria-hidden className="h-4 w-4" />
+            {!isCollapsed ? "Process" : null}
+          </button>
+        ) : null}
+
+        {isAdmin ? (
+          <Link
+            href={SETTINGS_PATH}
+            className={`inline-flex items-center rounded-xl px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 ${
+              isCollapsed ? "justify-center" : "gap-2"
+            }`}
+            aria-label="Admin settings"
+            title="Admin settings"
+          >
+            <Settings aria-hidden className="h-4 w-4" />
+            {!isCollapsed ? "Settings" : null}
+          </Link>
+        ) : null}
       </nav>
       <div className="my-4 h-px bg-slate-200" />
       <div className="grid gap-2">

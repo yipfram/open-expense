@@ -8,7 +8,15 @@ export function parseWorkspaceView(value: string | undefined): WorkspaceView | u
     return undefined;
   }
 
-  return value === "member" || value === "finance" ? value : undefined;
+  if (value === "member") {
+    return "member";
+  }
+
+  if (value === "process" || value === "finance") {
+    return "finance";
+  }
+
+  return undefined;
 }
 
 export function getDefaultWorkspaceView(roles: readonly AppRole[]): WorkspaceView {

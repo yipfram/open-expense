@@ -18,7 +18,7 @@ The system collects and organizes receipts, and is not an accounting platform.
 8. Deployment target for v1: self-hosted environment (Docker Compose supported by IT).
 9. Milestone 0 bootstrap mode: local-first development using pnpm (no mandatory Docker setup).
 10. Email templates in v1: plain text; branded HTML can be introduced later.
-11. Protected UI routing uses a unified workspace path (`/app`) with role-aware view selection via query param (`?view=member|finance`) and a separate admin settings path (`/settings`).
+11. Protected UI routing uses a unified workspace path (`/app`) with role-aware view selection via query param (`?view=member|process`) and a separate admin settings path (`/settings`). Legacy `?view=finance` is kept as compatible alias.
 12. Expense detail pages are shareable internal routes under `/app/expense/[id]` and remain protected by role-based access checks.
 
 ## Domain and Workflow Decisions
@@ -29,12 +29,13 @@ The system collects and organizes receipts, and is not an accounting platform.
 5. Future statuses: `paid`, `archived`.
 6. Member can edit/delete only in `draft`.
 7. Deletion strategy: soft delete (`deleted_at`) for traceability.
-8. Finance can edit key fields and set `received`.
+8. Finance can correct key fields while an expense is `submitted`, then set `received`.
 9. Finance inbox default sorting: newest submitted first.
 10. Public expense identifier format: `EXP-YYYY-NNNNNN`.
 11. Milestone 3 finance inbox uses `submitted` as the default processing view and supports status filtering (`all`, `draft`, `submitted`, `received`).
 12. Milestone 3 finance inbox supports filtering by `department` and `project`.
-13. Milestone 3 finance processing permits `finance` and `admin` to update key fields (`amount`, `expense_date`, `category`, `payment_method`, `comment`, `department`, `project`) and mark submitted expenses as `received`.
+13. Milestone 3 finance processing is validation-first: `finance` and `admin` validate submitted expenses as the primary action (`submitted -> received`), while corrections are secondary and only allowed before validation.
+14. UI wording uses `Validated` for internal `received` status in process workflow; database/API status values remain unchanged.
 
 ## Validation and Constraints (V1)
 1. Upload constraints: `jpg/jpeg/png/pdf`, max 1 file, max 10 MB.

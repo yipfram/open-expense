@@ -32,7 +32,7 @@ export function buildWorkspaceNavItems(input: WorkspaceNavInput): WorkspaceNavIt
     items.push({
       key: "process",
       label: "Process",
-      href: `${input.workspacePath}?view=finance`,
+      href: `${input.workspacePath}?view=process`,
       active: input.activeView === "finance",
     });
   }

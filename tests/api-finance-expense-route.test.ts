@@ -90,7 +90,6 @@ describe("/api/finance/expenses/[expenseId]", () => {
         category: "Meal",
         paymentMethod: "personal_card",
       },
-      status: null,
     });
     updateFinanceExpense.mockResolvedValueOnce({
       id: "e1",
@@ -120,7 +119,6 @@ describe("/api/finance/expenses/[expenseId]", () => {
         category: "Meal",
         paymentMethod: "personal_card",
       },
-      status: null,
     });
   });
 
@@ -156,10 +154,9 @@ describe("/api/finance/expenses/[expenseId]", () => {
         category: "Meal",
         paymentMethod: "personal_card",
       },
-      status: "received",
     });
     updateFinanceExpense.mockImplementationOnce(() => {
-      throw new ExpenseError(409, "finance_edit_not_allowed", "Only submitted or received expenses can be updated.");
+      throw new ExpenseError(409, "finance_edit_not_allowed", "Only submitted expenses can be corrected before validation.");
     });
 
     const { PATCH } = await import("../app/api/finance/expenses/[expenseId]/route");
@@ -172,7 +169,6 @@ describe("/api/finance/expenses/[expenseId]", () => {
           expenseDate: "2026-02-24",
           category: "Meal",
           paymentMethod: "personal_card",
-          status: "received",
         }),
       }),
       { params: Promise.resolve({ expenseId: "e1" }) },

@@ -5,6 +5,7 @@ import { canAccessWorkspaceView, getDefaultWorkspaceView, parseWorkspaceView } f
 describe("workspace routing rules", () => {
   it("parses valid views and rejects invalid values", () => {
     expect(parseWorkspaceView("member")).toBe("member");
+    expect(parseWorkspaceView("process")).toBe("finance");
     expect(parseWorkspaceView("finance")).toBe("finance");
     expect(parseWorkspaceView("unknown")).toBeUndefined();
     expect(parseWorkspaceView(undefined)).toBeUndefined();

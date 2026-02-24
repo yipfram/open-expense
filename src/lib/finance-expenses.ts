@@ -5,8 +5,6 @@ import { ExpenseError } from "@/src/lib/expense-errors";
 import { type UpsertExpenseInput, validateExpenseInput } from "@/src/lib/expense-validation";
 
 const FINANCE_STATUS_FILTERS = ["all", "draft", "submitted", "received"] as const;
-const EDITABLE_FINANCE_STATUSES = new Set<FinanceExpenseStatus>(["submitted", "received"]);
-
 export type FinanceExpenseStatus = "draft" | "submitted" | "received";
 export type FinanceStatusFilter = (typeof FINANCE_STATUS_FILTERS)[number];
 
@@ -63,7 +61,6 @@ export type FinanceExpenseListResult = {
 
 export type FinanceExpenseUpdatePayload = {
   input: UpsertExpenseInput;
-  status: "received" | null;
 };
 
 type FinanceStatusTransition = {
@@ -161,6 +158,10 @@ export function parseFinanceExpenseUpdatePayload(body: unknown): FinanceExpenseU
     throw new ExpenseError(400, "invalid_payload", "Request body must be a JSON object.");
   }
 
+  if ("status" in body && parseOptionalString(body.status) !== undefined) {
+    throw new ExpenseError(400, "invalid_status_transition", "Use the validate endpoint to mark an expense as validated.");
+  }
+
   const input: UpsertExpenseInput = {
     amount: parseRequiredString(body.amount, "amount"),
     expenseDate: parseRequiredString(body.expenseDate, "expenseDate"),
@@ -171,32 +172,89 @@ export function parseFinanceExpenseUpdatePayload(body: unknown): FinanceExpenseU
     projectId: parseOptionalUuidString(body.projectId, "projectId"),
   };
 
-  const rawStatus = parseOptionalString(body.status)?.toLowerCase();
-  if (rawStatus && rawStatus !== "received") {
-    throw new ExpenseError(400, "invalid_status_transition", "Status can only be set to received.");
-  }
-
   return {
     input,
-    status: rawStatus === "received" ? "received" : null,
   };
 }
 
-export function resolveFinanceStatusTransition(
-  currentStatus: FinanceExpenseStatus,
-  requestedStatus: "received" | null,
-): FinanceStatusTransition {
-  if (!EDITABLE_FINANCE_STATUSES.has(currentStatus)) {
-    throw new ExpenseError(409, "finance_edit_not_allowed", "Only submitted or received expenses can be updated.");
+export async function updateFinanceExpense(
+  expenseId: string,
+  payload: FinanceExpenseUpdatePayload,
+): Promise<FinanceExpenseRecord> {
+  const { db } = await import("@/src/db/client");
+  const existingRows = await db
+    .select({
+      id: expenses.id,
+      status: expenses.status,
+      deletedAt: expenses.deletedAt,
+    })
+    .from(expenses)
+    .where(eq(expenses.id, expenseId))
+    .limit(1);
+
+  const existing = existingRows[0];
+  if (!existing || existing.deletedAt) {
+    throw new ExpenseError(404, "expense_not_found", "Expense was not found.");
   }
 
-  if (!requestedStatus) {
-    return {
-      status: currentStatus,
-      setReceivedAt: false,
-    };
+  if (existing.status !== "submitted") {
+    throw new ExpenseError(409, "finance_edit_not_allowed", "Only submitted expenses can be corrected before validation.");
   }
 
+  const validated = validateExpenseInput(payload.input);
+  const now = new Date();
+
+  await db
+    .update(expenses)
+    .set({
+      amountMinor: validated.amountMinor,
+      expenseDate: validated.expenseDate,
+      category: validated.category,
+      paymentMethod: validated.paymentMethod,
+      comment: validated.comment,
+      departmentId: validated.departmentId,
+      projectId: validated.projectId,
+      updatedAt: now,
+    })
+    .where(and(eq(expenses.id, expenseId), isNull(expenses.deletedAt)));
+
+  return getFinanceExpenseById(expenseId);
+}
+
+export async function markFinanceExpenseValidated(expenseId: string): Promise<FinanceExpenseRecord> {
+  const { db } = await import("@/src/db/client");
+  const existingRows = await db
+    .select({
+      id: expenses.id,
+      status: expenses.status,
+      deletedAt: expenses.deletedAt,
+    })
+    .from(expenses)
+    .where(eq(expenses.id, expenseId))
+    .limit(1);
+
+  const existing = existingRows[0];
+  if (!existing || existing.deletedAt) {
+    throw new ExpenseError(404, "expense_not_found", "Expense was not found.");
+  }
+
+  const transition = resolveFinanceValidationTransition(existing.status);
+  if (transition.status === "received" && transition.setReceivedAt) {
+    const now = new Date();
+    await db
+      .update(expenses)
+      .set({
+        status: "received",
+        receivedAt: now,
+        updatedAt: now,
+      })
+      .where(and(eq(expenses.id, expenseId), isNull(expenses.deletedAt)));
+  }
+
+  return getFinanceExpenseById(expenseId);
+}
+
+export function resolveFinanceValidationTransition(currentStatus: FinanceExpenseStatus): FinanceStatusTransition {
   if (currentStatus === "submitted") {
     return {
       status: "received",
@@ -211,51 +269,7 @@ export function resolveFinanceStatusTransition(
     };
   }
 
-  throw new ExpenseError(409, "invalid_status_transition", "Unable to apply requested status transition.");
-}
-
-export async function updateFinanceExpense(
-  expenseId: string,
-  payload: FinanceExpenseUpdatePayload,
-): Promise<FinanceExpenseRecord> {
-  const { db } = await import("@/src/db/client");
-  const existingRows = await db
-    .select({
-      id: expenses.id,
-      status: expenses.status,
-      receivedAt: expenses.receivedAt,
-      deletedAt: expenses.deletedAt,
-    })
-    .from(expenses)
-    .where(eq(expenses.id, expenseId))
-    .limit(1);
-
-  const existing = existingRows[0];
-  if (!existing || existing.deletedAt) {
-    throw new ExpenseError(404, "expense_not_found", "Expense was not found.");
-  }
-
-  const transition = resolveFinanceStatusTransition(existing.status, payload.status);
-  const validated = validateExpenseInput(payload.input);
-  const now = new Date();
-
-  await db
-    .update(expenses)
-    .set({
-      amountMinor: validated.amountMinor,
-      expenseDate: validated.expenseDate,
-      category: validated.category,
-      paymentMethod: validated.paymentMethod,
-      comment: validated.comment,
-      departmentId: validated.departmentId,
-      projectId: validated.projectId,
-      status: transition.status,
-      receivedAt: transition.status === "received" ? (transition.setReceivedAt ? now : existing.receivedAt ?? now) : null,
-      updatedAt: now,
-    })
-    .where(and(eq(expenses.id, expenseId), isNull(expenses.deletedAt)));
-
-  return getFinanceExpenseById(expenseId);
+  throw new ExpenseError(409, "invalid_status_transition", "Only submitted expenses can be validated.");
 }
 
 async function getFinanceExpenseById(expenseId: string): Promise<FinanceExpenseRecord> {

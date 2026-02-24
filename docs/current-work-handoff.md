@@ -54,22 +54,26 @@ Primary source-of-truth docs:
 - Finance inbox flow implemented:
   - `GET /api/finance/expenses`
   - `PATCH /api/finance/expenses/:expenseId`
+  - `POST /api/finance/expenses/:expenseId/validate`
+  - compatibility alias: `POST /api/finance/expenses/:expenseId/receive`
   - filter support: `status`, `departmentId`, `projectId`
   - default processing filter: `status=submitted`
-  - finance/admin can update key fields and mark expenses as `received`
+  - validation-first UX: finance/admin validate submitted expenses first, then optionally correct before validation
+  - internal status `received` is displayed as `Validated` in process UI
 - Expense domain schema and migrations added:
   - `department`, `project`, `expense`, `expense_attachment`
   - enums `expense_status`, `payment_method`
 - Receipt storage switched to S3-compatible bucket uploads.
 - Member UI now includes mobile-first draft create/edit/delete/submit manager.
-- Finance UI now includes desktop inbox in `/app?view=finance`:
+- Finance UI now includes desktop inbox in `/app?view=process`:
   - central list sorted newest first
   - filters by status/project/department
-  - detail editor for key expense fields
-  - action to set `submitted -> received`
+  - quick table action to validate submitted expenses
+  - expanded review-first detail with receipt preview
+  - correction form is secondary (accordion) and locked for already validated expenses
 - Workspace shell now uses a burger menu in `/app` with task labels:
   - `Submit` (`view=member`)
-  - `Process` (`view=finance`)
+  - `Process` (`view=process`)
   - `Settings` (admin only)
   - `Sign out`
 
