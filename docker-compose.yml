@@ -35,8 +35,6 @@ services:
       - AUTH_SIGNUP_MODE=${AUTH_SIGNUP_MODE:-invite_only}
       - AUTH_ADMIN_EMAIL=${AUTH_ADMIN_EMAIL}
       - AUTH_ADMIN_EMAILS=${AUTH_ADMIN_EMAILS}
-    ports:
-      - "3000:3000"
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -51,8 +49,6 @@ services:
       - POSTGRES_USER=${SERVICE_USER_POSTGRES}
       - POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}
       - POSTGRES_DB=${POSTGRES_DB:-open_expense}
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
