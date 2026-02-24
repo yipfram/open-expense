@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const signInEmail = vi.fn();
+const ensureBootstrapAdminRolesForEmail = vi.fn();
 const logServerError = vi.fn();
 const toUiError = vi.fn();
 const uiErrorToStatusCode = vi.fn();
@@ -11,6 +12,10 @@ vi.mock("@/src/lib/auth", () => ({
       signInEmail,
     },
   },
+}));
+
+vi.mock("@/src/lib/bootstrap-admin", () => ({
+  ensureBootstrapAdminRolesForEmail,
 }));
 
 vi.mock("@/src/lib/errors", () => ({
@@ -102,5 +107,24 @@ describe("POST /api/auth/sign-in", () => {
     expect(body.code).toBe("INVALID_PASSWORD");
     expect(body.upstreamStatus).toBe(422);
     expect(logServerError).toHaveBeenCalledTimes(1);
+    expect(ensureBootstrapAdminRolesForEmail).not.toHaveBeenCalled();
+  });
+
+  it("ensures bootstrap roles after successful sign-in", async () => {
+    signInEmail.mockResolvedValueOnce(
+      new Response(JSON.stringify({ ok: true }), { status: 200, headers: { "content-type": "application/json" } }),
+    );
+
+    const { POST } = await import("../app/api/auth/sign-in/route");
+    const response = await POST(
+      new Request("http://localhost/api/auth/sign-in", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email: "admin@example.com", password: "secret123" }),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(ensureBootstrapAdminRolesForEmail).toHaveBeenCalledWith("admin@example.com");
   });
 });

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { auth } from "@/src/lib/auth";
+import { ensureBootstrapAdminRolesForEmail } from "@/src/lib/bootstrap-admin";
 import { logServerError, toUiError, uiErrorToStatusCode } from "@/src/lib/errors";
 import { canSignUp, consumeInviteCode } from "@/src/lib/invites";
 import { getPasswordPolicyLabel, validatePasswordLength } from "@/src/lib/password-policy";
@@ -42,7 +43,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: getPasswordPolicyLabel() }, { status: 400 });
   }
 
-  if (!(await canSignUp(inviteCode))) {
+  if (!(await canSignUp(inviteCode, email))) {
     return NextResponse.json({ error: "Signup requires a valid invite code." }, { status: 403 });
   }
 
@@ -69,13 +70,14 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!(await consumeInviteCode(inviteCode))) {
+    if (!(await consumeInviteCode(inviteCode, email))) {
       return NextResponse.json(
         { error: "Your invite code became unavailable. Please request a new invite." },
         { status: 409 },
       );
     }
 
+    await ensureBootstrapAdminRolesQuietly(email);
     return response;
   } catch (error) {
     const uiError = toUiError(error, "Unable to create account right now.");
@@ -129,4 +131,13 @@ function getString(value: unknown): string | undefined {
 
   const normalized = value.trim();
   return normalized.length > 0 ? normalized : undefined;
+}
+
+async function ensureBootstrapAdminRolesQuietly(email: string) {
+  try {
+    await ensureBootstrapAdminRolesForEmail(email);
+  } catch (error) {
+    const uiError = toUiError(error, "Unable to ensure bootstrap admin roles.");
+    logServerError("bootstrap role ensure failed after sign-up", error, uiError.requestId);
+  }
 }

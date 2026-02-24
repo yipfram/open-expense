@@ -98,12 +98,17 @@ Notes:
 - `signup_mode` (`invite_only`, `open`, `both_default_invite`)
 - `updated_at`
 
-### Invite (Milestone 1 bootstrap: env-backed tokens)
+### Invite
 - `token`
 - `expires_at`
 - `email` (nullable pre-targeting)
 - `created_by_user_id` (nullable)
 - `used_at` (nullable)
+
+Notes:
+- Invite validation is DB-backed (`invites` table records).
+- Optional bootstrap bypass can be configured via `AUTH_ADMIN_EMAIL` for invite-only signup (`AUTH_ADMIN_EMAILS` alias accepted).
+- Bootstrap allowlist accounts auto-receive persisted `admin`, `finance`, and `member` role assignments after successful sign-up/sign-in.
 
 ### Better Auth Infrastructure Tables (Milestone 1 implementation)
 - `user`

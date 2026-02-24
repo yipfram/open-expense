@@ -111,7 +111,6 @@ export function SignUpForm({ requireInvite }: SignUpFormProps) {
             id="inviteCode"
             name="inviteCode"
             type="text"
-            required
           />
         </>
       ) : null}

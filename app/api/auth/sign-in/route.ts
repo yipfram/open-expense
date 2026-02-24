@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { auth } from "@/src/lib/auth";
+import { ensureBootstrapAdminRolesForEmail } from "@/src/lib/bootstrap-admin";
 import { logServerError, toUiError, uiErrorToStatusCode } from "@/src/lib/errors";
 
 type SignInPayload = {
@@ -55,6 +56,7 @@ export async function POST(request: Request) {
       );
     }
 
+    await ensureBootstrapAdminRolesQuietly(email);
     return response;
   } catch (error) {
     const uiError = toUiError(error, "Unable to sign in right now.");
@@ -108,4 +110,13 @@ function getString(value: unknown): string | undefined {
 
   const normalized = value.trim();
   return normalized.length > 0 ? normalized : undefined;
+}
+
+async function ensureBootstrapAdminRolesQuietly(email: string) {
+  try {
+    await ensureBootstrapAdminRolesForEmail(email);
+  } catch (error) {
+    const uiError = toUiError(error, "Unable to ensure bootstrap admin roles.");
+    logServerError("bootstrap role ensure failed after sign-in", error, uiError.requestId);
+  }
 }

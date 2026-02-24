@@ -41,6 +41,9 @@ Open-expense is not:
 - Canonical identity table: Better Auth `user`
 - Authorization source: persisted `role_assignment` records
 
+## How to Get Started
+Follow the local setup steps below.
+
 ## Quick Start (Local Development)
 Requirements:
 - Node.js 20+
@@ -67,6 +70,7 @@ Requirements:
    ```bash
    SEED_ADMIN_EMAIL=admin@example.com SEED_ADMIN_PASSWORD=ChangeMe123! pnpm seed:admin
    ```
+   Alternative built-in bootstrap path: set `AUTH_ADMIN_EMAIL=admin@example.com` and sign up with that email in invite-only mode (invite code bypass + automatic `admin`/`finance`/`member` role assignment). If the account already exists, a successful sign-in will backfill missing bootstrap roles.
 6. Start the app:
    ```bash
    pnpm dev
@@ -108,6 +112,8 @@ App/auth:
 - `BETTER_AUTH_URL`
 - `BETTER_AUTH_SECRET`
 - `AUTH_SIGNUP_MODE` (`invite_only` or `open`)
+- `AUTH_ADMIN_EMAIL` (optional canonical bootstrap email allowlist; comma/semicolon/newline separated)
+- `AUTH_ADMIN_EMAILS` (optional backward-compatible alias)
 
 Database:
 - `DATABASE_URL`

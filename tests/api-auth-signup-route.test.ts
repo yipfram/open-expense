@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const signUpEmail = vi.fn();
 const canSignUp = vi.fn();
 const consumeInviteCode = vi.fn();
+const ensureBootstrapAdminRolesForEmail = vi.fn();
 const logServerError = vi.fn();
 const toUiError = vi.fn();
 const uiErrorToStatusCode = vi.fn();
@@ -18,6 +19,10 @@ vi.mock("@/src/lib/auth", () => ({
 vi.mock("@/src/lib/invites", () => ({
   canSignUp,
   consumeInviteCode,
+}));
+
+vi.mock("@/src/lib/bootstrap-admin", () => ({
+  ensureBootstrapAdminRolesForEmail,
 }));
 
 vi.mock("@/src/lib/errors", () => ({
@@ -64,6 +69,8 @@ describe("POST /api/auth/sign-up", () => {
     );
 
     expect(response.status).toBe(403);
+    expect(canSignUp).toHaveBeenCalledWith("bad", "x@example.com");
+    expect(ensureBootstrapAdminRolesForEmail).not.toHaveBeenCalled();
   });
 
   it("returns 400 when password does not match policy", async () => {
@@ -99,6 +106,8 @@ describe("POST /api/auth/sign-up", () => {
     );
 
     expect(response.status).toBe(409);
+    expect(consumeInviteCode).toHaveBeenCalledWith("good", "x@example.com");
+    expect(ensureBootstrapAdminRolesForEmail).not.toHaveBeenCalled();
   });
 
   it("does not consume invite when signup fails", async () => {
@@ -130,6 +139,27 @@ describe("POST /api/auth/sign-up", () => {
     expect(body.requestId).toBe("req_signup_1");
     expect(body.upstreamStatus).toBe(422);
     expect(consumeInviteCode).not.toHaveBeenCalled();
+    expect(ensureBootstrapAdminRolesForEmail).not.toHaveBeenCalled();
     expect(logServerError).toHaveBeenCalledTimes(1);
+  });
+
+  it("ensures bootstrap roles after successful signup", async () => {
+    canSignUp.mockResolvedValueOnce(true);
+    signUpEmail.mockResolvedValueOnce(
+      new Response(JSON.stringify({ ok: true }), { status: 200, headers: { "content-type": "application/json" } }),
+    );
+    consumeInviteCode.mockResolvedValueOnce(true);
+
+    const { POST } = await import("../app/api/auth/sign-up/route");
+    const response = await POST(
+      new Request("http://localhost/api/auth/sign-up", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ name: "User", email: "admin@example.com", password: "secret123", inviteCode: "" }),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(ensureBootstrapAdminRolesForEmail).toHaveBeenCalledWith("admin@example.com");
   });
 });

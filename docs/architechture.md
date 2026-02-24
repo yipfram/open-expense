@@ -53,6 +53,10 @@ The system collects and organizes receipts, and is not an accounting platform.
 3. Invite expiration: 14 days.
 4. Milestone 1 implementation uses environment-driven signup mode (`AUTH_SIGNUP_MODE`) with `invite_only` as default.
 5. Invitation validation is backed by persisted invite records.
+6. `AUTH_ADMIN_EMAIL` defines bootstrap admin email(s) allowed to bypass invite code validation in `invite_only` mode.
+7. `AUTH_ADMIN_EMAILS` is accepted as a backwards-compatible alias for `AUTH_ADMIN_EMAIL`.
+8. Bootstrap allowlist accounts are auto-ensured with persisted roles (`admin`, `finance`, `member`) after successful sign-up/sign-in.
+9. Bootstrap allowlist behavior does not change runtime authorization source; role checks remain DB-backed.
 
 ## Role Persistence (Milestone 1)
 1. Access roles (`member`, `manager`, `finance`, `admin`) are persisted via `role_assignment` records.

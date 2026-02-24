@@ -2,10 +2,14 @@ import { and, desc, eq, gt, isNull } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 
 import { invites } from "@/src/db/schema";
-import { getSignupMode } from "@/src/lib/env";
+import { getSignupMode, isBootstrapInviteBypassEmail } from "@/src/lib/env";
 
-export async function canSignUp(inputCode?: string): Promise<boolean> {
+export async function canSignUp(inputCode?: string, email?: string): Promise<boolean> {
   if (getSignupMode() === "open") {
+    return true;
+  }
+
+  if (isBootstrapInviteBypassEmail(email)) {
     return true;
   }
 
@@ -24,8 +28,12 @@ export async function canSignUp(inputCode?: string): Promise<boolean> {
   return rows.length > 0;
 }
 
-export async function consumeInviteCode(inputCode?: string): Promise<boolean> {
+export async function consumeInviteCode(inputCode?: string, email?: string): Promise<boolean> {
   if (getSignupMode() === "open") {
+    return true;
+  }
+
+  if (isBootstrapInviteBypassEmail(email)) {
     return true;
   }
 
