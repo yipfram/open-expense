@@ -1,23 +1,35 @@
 services:
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrator
+    container_name: open-expense-migrate
+    restart: "no"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-change_me}@postgres:5432/open_expense
+    command: ["pnpm", "db:migrate"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   app:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        DATABASE_URL: ${DATABASE_URL}
-        BETTER_AUTH_URL: ${BETTER_AUTH_URL}
-        S3_ENDPOINT: ${S3_ENDPOINT}
     container_name: open-expense-app
     restart: unless-stopped
     environment:
       NODE_ENV: production
       PORT: 3000
-      DATABASE_URL: postgresql://user:password@postgres:5432/open_expense
+      DATABASE_URL: postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-change_me}@postgres:5432/open_expense
     env_file:
       - .env
     ports:
       - "3000:3000"
     depends_on:
+      migrate:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
 
@@ -26,15 +38,15 @@ services:
     container_name: open-expense-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: open_expense
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me}
+      POSTGRES_DB: ${POSTGRES_DB:-open_expense}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d open_expense"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-user} -d ${POSTGRES_DB:-open_expense}"]
       interval: 5s
       timeout: 5s
       retries: 10
