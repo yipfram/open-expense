@@ -1,6 +1,8 @@
 import { InviteManager } from "@/app/admin/invite-manager";
 import { requireRole } from "@/src/lib/session";
 
+export const dynamic = "force-dynamic";
+
 export default async function SettingsPage() {
   const session = await requireRole(["admin"]);
 

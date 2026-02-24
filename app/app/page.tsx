@@ -5,6 +5,8 @@ import { getUserRoles } from "@/src/lib/roles";
 import { requireSession } from "@/src/lib/session";
 import { canAccessWorkspaceView, getDefaultWorkspaceView, parseWorkspaceView } from "@/src/lib/workspace";
 
+export const dynamic = "force-dynamic";
+
 type WorkspacePageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
