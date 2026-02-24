@@ -1,6 +1,6 @@
 # Current Work Handoff (V1)
 
-Last updated: 2026-02-19
+Last updated: 2026-02-24
 
 ## Purpose
 Cross-session execution context for the current implementation state.
@@ -13,7 +13,7 @@ Primary source-of-truth docs:
 - `docs/milestones-v1.md`
 
 ## Current Milestone Focus
-- Milestone 2: Member Submission (Mobile First)
+- Milestone 3: Finance Inbox (Desktop)
 
 ## Implemented So Far
 - Next.js App Router + TypeScript + pnpm bootstrap.
@@ -51,11 +51,22 @@ Primary source-of-truth docs:
   - `PUT /api/member/expenses/:expenseId`
   - `DELETE /api/member/expenses/:expenseId`
   - `POST /api/member/expenses/:expenseId/submit`
+- Finance inbox flow implemented:
+  - `GET /api/finance/expenses`
+  - `PATCH /api/finance/expenses/:expenseId`
+  - filter support: `status`, `departmentId`, `projectId`
+  - default processing filter: `status=submitted`
+  - finance/admin can update key fields and mark expenses as `received`
 - Expense domain schema and migrations added:
   - `department`, `project`, `expense`, `expense_attachment`
   - enums `expense_status`, `payment_method`
 - Receipt storage switched to S3-compatible bucket uploads.
 - Member UI now includes mobile-first draft create/edit/delete/submit manager.
+- Finance UI now includes desktop inbox in `/app?view=finance`:
+  - central list sorted newest first
+  - filters by status/project/department
+  - detail editor for key expense fields
+  - action to set `submitted -> received`
 - Workspace shell now uses a burger menu in `/app` with task labels:
   - `Submit` (`view=member`)
   - `Process` (`view=finance`)
@@ -71,11 +82,11 @@ Primary source-of-truth docs:
 - `500`: unexpected server errors
 
 ## Known Technical Gaps
-- Finance inbox, notifications, and audit trail are pending future milestones.
+- Notifications and audit trail are pending future milestones.
 
 ## Recommended Next Steps
-1. Add integration tests for member expense API routes.
-2. Start Milestone 3 finance inbox list and processing flow.
+1. Start Milestone 4: notifications on submission (finance + member confirmation).
+2. Implement expense version history and admin audit event flow.
 
 ## Useful Commands
 ```bash

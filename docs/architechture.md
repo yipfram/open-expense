@@ -32,6 +32,9 @@ The system collects and organizes receipts, and is not an accounting platform.
 8. Finance can edit key fields and set `received`.
 9. Finance inbox default sorting: newest submitted first.
 10. Public expense identifier format: `EXP-YYYY-NNNNNN`.
+11. Milestone 3 finance inbox uses `submitted` as the default processing view and supports status filtering (`all`, `draft`, `submitted`, `received`).
+12. Milestone 3 finance inbox supports filtering by `department` and `project`.
+13. Milestone 3 finance processing permits `finance` and `admin` to update key fields (`amount`, `expense_date`, `category`, `payment_method`, `comment`, `department`, `project`) and mark submitted expenses as `received`.
 
 ## Validation and Constraints (V1)
 1. Upload constraints: `jpg/jpeg/png/pdf`, max 1 file, max 10 MB.
